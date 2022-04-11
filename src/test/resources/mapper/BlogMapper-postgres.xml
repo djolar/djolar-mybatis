@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.enixyu.djolar.mybatis.mapper.BlogMapper">
+    <select id="findAll" resultType="com.enixyu.djolar.mybatis.domain.Blog">
+        SELECT * FROM "blog"
+    </select>
+
+    <select id="findById" resultType="com.enixyu.djolar.mybatis.domain.Blog">
+        SELECT * FROM "blog" WHERE "id" = #{id}
+    </select>
+
+    <select id="findBlogWithUser" resultType="com.enixyu.djolar.mybatis.domain.Blog">
+        SELECT "blog".* FROM "blog"
+        INNER JOIN "user" ON "blog"."user_id" = "user"."id"
+    </select>
+</mapper>
