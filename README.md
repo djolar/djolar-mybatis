@@ -1,5 +1,7 @@
 # Djolar for MyBatis
 
+## Introduction
+
 `Djolar` is a protocol like graphql, but only focus on how to filter data in database. It is very common to use multiple filter in web-app or mobile-app, `Djolar` is lifesaver to build clean API services, unified frontend component. 
 
 For example, we need to search a user with 
@@ -12,11 +14,11 @@ so we can invoke the api with the following query parameters:
 http://localhost:8000/api/v1/users?q=name__eq__enix|age__gt__18
 ```
 
-`q` stand for `query`, the value syntax as below:
+`q` stand for `query`, the query value syntax as below:
 
 ```text
-value := <filter-clause1>[|<filter-clause2>|...] 
-filter-clause := <field_name>__<operator>__value
+q-value := <filter-clause1>[|<filter-clause2>|...] 
+filter-clause := <field-name>__<operator>__<filter-value>
 ```
 
 support operators:
@@ -110,7 +112,7 @@ public class Test {
 }
 ```
 
-# 3. Djolar implementation for other language
+## 3. Djolar implementation for other language
 
 * [djolar for golang](https://github.com/enix223/go-djolar)
 * [djolar for python django](https://github.com/enix223/djolar)
