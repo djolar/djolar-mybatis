@@ -18,6 +18,8 @@
  */
 package com.enixyu.djolar.mybatis.parser;
 
+import com.enixyu.djolar.mybatis.annotation.AdditionalSort;
+import com.enixyu.djolar.mybatis.annotation.AdditionalWhere;
 import com.enixyu.djolar.mybatis.annotation.Column;
 import com.enixyu.djolar.mybatis.annotation.Mapping;
 import com.enixyu.djolar.mybatis.annotation.Table;
@@ -36,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -101,8 +104,9 @@ public class DjolarParser {
 
     // try to get filed mapping from method
     Mapping mappingAnnotation;
+    Method method;
     try {
-      Method method = mapperClass.getMethod(mapperMethod, QueryRequest.class);
+      method = mapperClass.getMethod(mapperMethod, QueryRequest.class);
       mappingAnnotation = method.getAnnotation(Mapping.class);
       if (mappingAnnotation == null) {
         // get field mapping from class
@@ -116,6 +120,27 @@ public class DjolarParser {
     if (mappingAnnotation == null) {
       // skip djolar interceptor
       return new ParseResult(boundSql, request);
+    }
+
+    // add extra where and sort
+    AdditionalWhere additionalWhere = method.getAnnotation(AdditionalWhere.class);
+    if (additionalWhere != null) {
+      String query = Optional.ofNullable(request.getQuery())
+          .map(String::trim)
+          .map(q -> q.length() == 0 ? null : q)
+          .map(q -> q + "|" + additionalWhere.where())
+          .orElse(additionalWhere.where());
+      request.setQuery(query);
+    }
+
+    AdditionalSort additionalSort = method.getAnnotation(AdditionalSort.class);
+    if (additionalSort != null) {
+      String sort = Optional.ofNullable(request.getSort())
+          .map(String::trim)
+          .map(s -> s.length() == 0? null : s)
+          .map(s -> s + "," + additionalSort.sort())
+          .orElse(additionalSort.sort());
+      request.setSort(sort);
     }
 
     ensureDialect(ms);
@@ -141,7 +166,7 @@ public class DjolarParser {
     }
     if (orderByClauseList != null && orderByClauseList.iterator().hasNext()) {
       sqlbuilder.append(" ORDER BY ");
-      orderByClauseList.forEach(sqlbuilder::append);
+      sqlbuilder.append(String.join(",", orderByClauseList));
     }
     BoundSql newBoundSql = new BoundSql(ms.getConfiguration(), sqlbuilder.toString(),
         parameterMappings, parameterObject);
@@ -281,6 +306,10 @@ public class DjolarParser {
 
   private List<String> parseOrderByFields(String orderBy) {
     if (orderBy == null) {
+      return null;
+    }
+    orderBy = orderBy.trim();
+    if (orderBy.length() == 0) {
       return null;
     }
 

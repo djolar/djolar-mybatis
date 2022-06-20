@@ -23,6 +23,7 @@ import com.enixyu.djolar.mybatis.mapper.BlogMapper;
 import com.enixyu.djolar.mybatis.parser.Op;
 import com.enixyu.djolar.mybatis.parser.QueryRequest;
 import com.enixyu.djolar.mybatis.parser.QueryRequest.QueryRequestBuilder;
+import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import java.io.IOException;
 import java.io.InputStream;
@@ -142,17 +143,35 @@ public abstract class BaseSessionTest {
     }
 
     @Test
+    void testAdditionalWhere() {
+        try (SqlSession session = this.sessionFactory.openSession()) {
+            BlogMapper mapper = session.getMapper(BlogMapper.class);
+            QueryRequest request = new QueryRequest();
+            request.setQuery("n__eq__abc1");
+            List<Blog> results = mapper.findMyBlogs(request);
+            Assertions.assertEquals(1, results.size());
+
+            request.setQuery("n__eq__abc4");
+            request.setSort(null);
+            results = mapper.findMyBlogs(request);
+            Assertions.assertEquals(0, results.size());
+        }
+    }
+
+    @Test
     void testIntegrateWithPageHelper() {
         try (SqlSession session = this.sessionFactory.openSession()) {
             BlogMapper mapper = session.getMapper(BlogMapper.class);
-            PageHelper.startPage(1, 5);
+            Page<?> page = PageHelper.startPage(1, 5);
             QueryRequest request = new QueryRequest();
             request.setQuery("n__co__bc");
             List<Blog> results = mapper.findAll(request);
             Assertions.assertEquals(5, results.size());
+            page.close();
         }
     }
 
+    @Test
     void testQueryRequestBuilder() {
         QueryRequest queryRequest = QueryRequestBuilder.newBuilder()
             .addQuery("col1", Op.Equal, "1")

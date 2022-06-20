@@ -7,6 +7,10 @@
         SELECT * FROM "blog"
     </select>
 
+    <select id="findMyBlogs" resultType="com.enixyu.djolar.mybatis.domain.Blog">
+        SELECT * FROM "blog"
+    </select>
+
     <select id="findById" resultType="com.enixyu.djolar.mybatis.domain.Blog">
         SELECT * FROM "blog" WHERE "id" = #{id}
     </select>

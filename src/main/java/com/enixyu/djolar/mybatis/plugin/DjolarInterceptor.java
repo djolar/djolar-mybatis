@@ -63,7 +63,6 @@ public class DjolarInterceptor implements Interceptor {
         RowBounds rowBounds = (RowBounds) args[2];
         ResultHandler<?> resultHandler = (ResultHandler<?>) args[3];
         BoundSql boundSql = args.length > 4 ? (BoundSql) args[5] : ms.getBoundSql(parameter);
-        CacheKey cacheKey = args.length > 4 ? (CacheKey) args[4] : executor.createCacheKey(ms, parameter, rowBounds, boundSql);
 
         if (!(parameter instanceof QueryRequest)) {
             // Parameter type not correct, skip this interceptor
@@ -71,6 +70,7 @@ public class DjolarInterceptor implements Interceptor {
         }
 
         ParseResult result = parser.parse(ms, boundSql, (QueryRequest) parameter);
+        CacheKey cacheKey = executor.createCacheKey(ms, result.getParameter(), rowBounds, result.getBoundSql());
         return executor.query(ms, result.getParameter(), rowBounds, resultHandler, cacheKey, result.getBoundSql());
     }
 

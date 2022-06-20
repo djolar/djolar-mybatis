@@ -22,6 +22,8 @@
  */
 package com.enixyu.djolar.mybatis.mapper;
 
+import com.enixyu.djolar.mybatis.annotation.AdditionalSort;
+import com.enixyu.djolar.mybatis.annotation.AdditionalWhere;
 import com.enixyu.djolar.mybatis.annotation.Mapping;
 import com.enixyu.djolar.mybatis.domain.Blog;
 import com.enixyu.djolar.mybatis.mapping.BlogDjolarMapping;
@@ -34,6 +36,10 @@ import java.util.List;
 @Mapping(Blog.class)
 public interface BlogMapper {
     List<Blog> findAll(QueryRequest request);
+
+    @AdditionalWhere(where = "user_id__eq__1")
+    @AdditionalSort(sort = "-id,name")
+    List<Blog> findMyBlogs(QueryRequest request);
 
     Blog findById(int id);
 

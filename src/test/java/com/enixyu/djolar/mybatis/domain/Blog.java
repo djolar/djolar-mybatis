@@ -30,7 +30,7 @@ public class Blog {
     private int id;
     @Column(queryAlias = "n")
     private String name;
-    @Column(queryAlias = "user_id")
+    @Column(queryAlias = "user_id", columnName = "user_id")
     private int userID;
 
     public int getUserID() {
