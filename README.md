@@ -34,6 +34,8 @@ support operators:
 | sw       | starts with (LIKE)         |
 | ew       | ends with (LIKE)           |
 | in       | in (IN)                    |
+| nn       | is not null                |
+| nu       | is null                    |
 
 ## 1. Installation
 

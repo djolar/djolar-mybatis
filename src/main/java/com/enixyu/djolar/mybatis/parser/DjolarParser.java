@@ -61,7 +61,6 @@ public class DjolarParser {
     cachedQueryMapping = new ConcurrentHashMap<>();
   }
 
-  private final Pattern queryPattern = Pattern.compile("(\\w+)__(\\w+)__(.*)");
   private final Pattern orderByPattern = Pattern.compile("^([-+])?(.*)$");
   private final Pattern mapperIdPattern = Pattern.compile("^([\\w.]+)\\.(\\w+)$");
   private volatile Dialect dialect;
@@ -137,7 +136,7 @@ public class DjolarParser {
     if (additionalSort != null) {
       String sort = Optional.ofNullable(request.getSort())
           .map(String::trim)
-          .map(s -> s.length() == 0? null : s)
+          .map(s -> s.length() == 0 ? null : s)
           .map(s -> s + "," + additionalSort.sort())
           .orElse(additionalSort.sort());
       request.setSort(sort);
@@ -239,22 +238,30 @@ public class DjolarParser {
       MappedStatement ms,
       List<ParameterMapping> parameterMappings,
       Map<String, Object> parameterObject) {
-    Matcher matcher = queryPattern.matcher(item);
-    if (!matcher.find()) {
+    String[] groups = item.split("__");
+    if (groups.length != 2 && groups.length != 3) {
       return null;
     }
 
-    String fieldName = matcher.group(1);
-    String op = matcher.group(2);
-    String value = matcher.group(3);
+    // get field
+    String fieldName = groups[0];
     QueryMapping.Item field = queryMapping.get(fieldName);
 
+    // get operator
+    String op = groups[1];
     Op operator = Op.fromString(op);
     if (operator == null || field == null) {
       return null;
     }
 
+    if (groups.length == 2) {
+      return new WhereClause(field.getTableName(), field.getFieldName(), operator, null,
+          field.getFieldType());
+    }
+
+    // parse value
     Object parsedValue;
+    String value = groups[2];
     if (field.getFieldType().isPrimitive()) {
       switch (field.getFieldType().getName()) {
         case "int":
@@ -280,7 +287,7 @@ public class DjolarParser {
           throw new DjolarParserException("unsupported primitive type");
       }
     } else if (field.getFieldType().equals(String.class)) {
-      if (operator == Op.Contain) {
+      if (operator == Op.Contain || operator == Op.IgnoreCaseContain) {
         parsedValue = String.format("%%%s%%", value);
       } else if (operator == Op.StartsWith) {
         parsedValue = String.format("%s%%", value);

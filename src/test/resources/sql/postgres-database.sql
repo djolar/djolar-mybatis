@@ -28,3 +28,4 @@ INSERT INTO "blog" (name, user_id) VALUES ('ddd6', 2);
 INSERT INTO "blog" (name, user_id) VALUES ('yc6', 2);
 INSERT INTO "blog" (name, user_id) VALUES ('xyz', 2);
 INSERT INTO "blog" (name, user_id) VALUES ('666', 3);
+INSERT INTO "blog" (name, user_id) VALUES (null, 3);

@@ -83,7 +83,7 @@ public abstract class BaseSessionTest {
             QueryRequest request = new QueryRequest();
             request.setQuery("id__gt__8");
             List<Blog> results = mapper.findAll(request);
-            Assertions.assertEquals(6, results.size());
+            Assertions.assertEquals(7, results.size());
         }
     }
 
@@ -94,7 +94,7 @@ public abstract class BaseSessionTest {
             QueryRequest request = new QueryRequest();
             request.setQuery("id__ge__8");
             List<Blog> results = mapper.findAll(request);
-            Assertions.assertEquals(7, results.size());
+            Assertions.assertEquals(8, results.size());
         }
     }
 
@@ -104,6 +104,17 @@ public abstract class BaseSessionTest {
             BlogMapper mapper = session.getMapper(BlogMapper.class);
             QueryRequest request = new QueryRequest();
             request.setQuery("n__co__bc");
+            List<Blog> results = mapper.findAll(request);
+            Assertions.assertEquals(10, results.size());
+        }
+    }
+
+    @Test
+    void testStringIgnoreCaseContain() {
+        try (SqlSession session = this.sessionFactory.openSession()) {
+            BlogMapper mapper = session.getMapper(BlogMapper.class);
+            QueryRequest request = new QueryRequest();
+            request.setQuery("n__ico__BC");
             List<Blog> results = mapper.findAll(request);
             Assertions.assertEquals(10, results.size());
         }
@@ -137,6 +148,28 @@ public abstract class BaseSessionTest {
             BlogMapper mapper = session.getMapper(BlogMapper.class);
             QueryRequest request = new QueryRequest();
             request.setQuery("blog_name__eq__abc1|user_name__eq__user1");
+            List<Blog> results = mapper.findBlogWithUser(request);
+            Assertions.assertEquals(1, results.size());
+        }
+    }
+
+    @Test
+    void testIsNotNull() {
+        try (SqlSession session = this.sessionFactory.openSession()) {
+            BlogMapper mapper = session.getMapper(BlogMapper.class);
+            QueryRequest request = new QueryRequest();
+            request.setQuery("blog_name__nn");
+            List<Blog> results = mapper.findBlogWithUser(request);
+            Assertions.assertEquals(14, results.size());
+        }
+    }
+
+    @Test
+    void testIsNull() {
+        try (SqlSession session = this.sessionFactory.openSession()) {
+            BlogMapper mapper = session.getMapper(BlogMapper.class);
+            QueryRequest request = new QueryRequest();
+            request.setQuery("blog_name__nu");
             List<Blog> results = mapper.findBlogWithUser(request);
             Assertions.assertEquals(1, results.size());
         }

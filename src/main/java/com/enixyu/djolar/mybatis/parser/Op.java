@@ -34,7 +34,9 @@ public enum Op {
     EndsWith("ew", "LIKE"),
     IgnoreCaseContain("ico", "LIKE"),
     In("in", "IN"),
-    NotIn("ni", "NOT IN");
+    NotIn("ni", "NOT IN"),
+    IsNull("nu", "IS NULL"),
+    IsNotNull("nn", "IS NOT NULL");
 
     private final String value;
     private final String symbol;
