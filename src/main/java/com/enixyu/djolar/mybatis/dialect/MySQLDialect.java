@@ -19,6 +19,8 @@
 package com.enixyu.djolar.mybatis.dialect;
 
 import com.enixyu.djolar.mybatis.parser.WhereClause;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class MySQLDialect implements Dialect {
 
@@ -37,6 +39,18 @@ public class MySQLDialect implements Dialect {
             whereClause.getTableName(),
             whereClause.getColumnName(),
             whereClause.getOperator().getSymbol()
+        );
+      case In:
+      case NotIn:
+        String mark = ((List<?>) whereClause.getValue())
+            .stream()
+            .map(ignore -> "?")
+            .collect(Collectors.joining(","));
+        return String.format("`%s`.`%s` %s (%s)",
+            whereClause.getTableName(),
+            whereClause.getColumnName(),
+            whereClause.getOperator().getSymbol(),
+            mark
         );
       default:
         return String.format("`%s`.`%s` %s ?",

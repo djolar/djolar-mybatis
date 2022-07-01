@@ -43,6 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.sql.DataSource;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -147,14 +148,21 @@ public class DjolarParser {
     QueryMapping queryMapping = loadQueryMapping(ms.getId(), mappingAnnotation.value());
     List<ParameterMapping> parameterMappings = new ArrayList<>();
     Map<String, Object> parameterObject = new HashMap<>();
+    Map<String, Object> additionalParameters = new HashMap<>();
+
+    // parse where clause
     List<WhereClause> whereClauseList = parseQueryFields(
         request.getQuery(),
         queryMapping,
         ms,
         parameterMappings,
-        parameterObject);
+        parameterObject,
+        additionalParameters);
+
+    // parse order by clause
     List<String> orderByClauseList = parseOrderByFields(request.getSort());
 
+    // build new bound sql with where clauses and order clauses
     String sql = boundSql.getSql();
     StringBuilder sqlbuilder = new StringBuilder(sql);
     if (whereClauseList != null && whereClauseList.size() > 0) {
@@ -169,6 +177,8 @@ public class DjolarParser {
     }
     BoundSql newBoundSql = new BoundSql(ms.getConfiguration(), sqlbuilder.toString(),
         parameterMappings, parameterObject);
+    additionalParameters.keySet()
+        .forEach(k -> newBoundSql.setAdditionalParameter(k, additionalParameters.get(k)));
     return new ParseResult(newBoundSql, parameterObject);
   }
 
@@ -219,25 +229,55 @@ public class DjolarParser {
     }
   }
 
+  /**
+   * Parse query field
+   *
+   * @param query                query value
+   * @param queryMapping         query mapping
+   * @param ms                   Mapped statement
+   * @param parameterMappings    parameter mapping list
+   * @param parameterObject      parameter map
+   * @param additionalParameters additional parameters
+   * @return WhereClause list
+   */
   private List<WhereClause> parseQueryFields(String query,
       QueryMapping queryMapping,
       MappedStatement ms,
       List<ParameterMapping> parameterMappings,
-      Map<String, Object> parameterObject) {
+      Map<String, Object> parameterObject,
+      Map<String, Object> additionalParameters) {
     if (query == null) {
       return null;
     }
-    return Arrays.stream(query.split("\\|"))
-        .map(i -> parseQueryItem(i, queryMapping, ms, parameterMappings, parameterObject))
+    String[] tokens = query.split("\\|");
+    return IntStream.range(0, tokens.length)
+        .mapToObj(
+            i -> parseQueryItem(i, tokens[i], queryMapping, ms, parameterMappings, parameterObject,
+                additionalParameters))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
 
-  private WhereClause parseQueryItem(String item,
+  /**
+   * Parse individual query clause
+   *
+   * @param index                clause index
+   * @param item                 clause string value
+   * @param queryMapping         query mapping
+   * @param ms                   Mapped statement
+   * @param parameterMappings    parameter mapping list
+   * @param parameterObject      parameter map
+   * @param additionalParameters additional parameters
+   * @return WhereClause
+   */
+  @SuppressWarnings("unchecked")
+  private WhereClause parseQueryItem(int index,
+      String item,
       QueryMapping queryMapping,
       MappedStatement ms,
       List<ParameterMapping> parameterMappings,
-      Map<String, Object> parameterObject) {
+      Map<String, Object> parameterObject,
+      Map<String, Object> additionalParameters) {
     String[] groups = item.split("__");
     if (groups.length != 2 && groups.length != 3) {
       return null;
@@ -255,62 +295,101 @@ public class DjolarParser {
     }
 
     if (groups.length == 2) {
+      // clause without value case
       return new WhereClause(field.getTableName(), field.getFieldName(), operator, null,
           field.getFieldType());
     }
 
     // parse value
-    Object parsedValue;
     String value = groups[2];
+    Class<?> fieldType = field.getFieldType();
+    Object parsedValue;
+    if (operator == Op.In || operator == Op.NotIn) {
+      // For IN or NOT IN operator
+      // We need to split the value into tokens and parse to target field type
+      String[] tokens = value.split(",");
+      parsedValue = new ArrayList<>(tokens.length);
+      for (int i = 0; i < tokens.length; i++) {
+        String token = tokens[i];
+        Object itemParsedValue = parseValue(field, operator, token);
+        ((List<Object>) parsedValue).add(itemParsedValue);
+        String property = String.format("%s_%s_%d_%d", field.getTableName(), field.getFieldName(),
+            index, i);
+        ParameterMapping parameterMapping = new ParameterMapping.Builder(
+            ms.getConfiguration(),
+            property,
+            fieldType).build();
+        parameterMappings.add(parameterMapping);
+        additionalParameters.put(property, itemParsedValue);
+      }
+      String property = String.format("%s_%s_%d", field.getTableName(), field.getFieldName(),
+          index);
+      parameterObject.put(property, parsedValue);
+    } else {
+      // Single value case
+      parsedValue = parseValue(field, operator, value);
+      String property = String.format("%s_%s_%d", field.getTableName(), field.getFieldName(),
+          index);
+      ParameterMapping parameterMapping = new ParameterMapping.Builder(
+          ms.getConfiguration(),
+          property,
+          fieldType).build();
+      parameterMappings.add(parameterMapping);
+      parameterObject.put(property, parsedValue);
+    }
+
+    return new WhereClause(field.getTableName(), field.getFieldName(), operator, parsedValue,
+        fieldType);
+  }
+
+  /**
+   * Convert string value into target field type
+   *
+   * @param field    query mapping field
+   * @param operator djolar operator
+   * @param value    source string value
+   * @return converted target value for given field type
+   */
+  private Object parseValue(QueryMapping.Item field, Op operator, String value) {
     if (field.getFieldType().isPrimitive()) {
       switch (field.getFieldType().getName()) {
         case "int":
-          parsedValue = Integer.parseInt(value);
-          break;
+          return Integer.parseInt(value);
         case "boolean":
-          parsedValue = Boolean.parseBoolean(value);
-          break;
+          return Boolean.parseBoolean(value);
         case "long":
-          parsedValue = Long.parseLong(value);
-          break;
+          return Long.parseLong(value);
         case "float":
-          parsedValue = Float.parseFloat(value);
-          break;
+          return Float.parseFloat(value);
         case "double":
-          parsedValue = Double.parseDouble(value);
-          break;
+          return Double.parseDouble(value);
         case "short":
-          parsedValue = Short.parseShort(value);
-          break;
+          return Short.parseShort(value);
         default:
           // unsupported primitive type
           throw new DjolarParserException("unsupported primitive type");
       }
     } else if (field.getFieldType().equals(String.class)) {
       if (operator == Op.Contain || operator == Op.IgnoreCaseContain) {
-        parsedValue = String.format("%%%s%%", value);
+        return String.format("%%%s%%", value);
       } else if (operator == Op.StartsWith) {
-        parsedValue = String.format("%s%%", value);
+        return String.format("%s%%", value);
       } else if (operator == Op.EndsWith) {
-        parsedValue = String.format("%%%s", value);
+        return String.format("%%%s", value);
       } else {
-        parsedValue = value;
+        return value;
       }
     } else {
       return null;
     }
-
-    String property = field.getTableName() + "_" + field.getFieldName();
-    ParameterMapping parameterMapping = new ParameterMapping.Builder(
-        ms.getConfiguration(),
-        property,
-        field.getFieldType()).build();
-    parameterMappings.add(parameterMapping);
-    parameterObject.put(property, parsedValue);
-    return new WhereClause(field.getTableName(), field.getFieldName(), operator, parsedValue,
-        field.getFieldType());
   }
 
+  /**
+   * Parse order by clause
+   *
+   * @param orderBy order by clause
+   * @return order by statements
+   */
   private List<String> parseOrderByFields(String orderBy) {
     if (orderBy == null) {
       return null;
