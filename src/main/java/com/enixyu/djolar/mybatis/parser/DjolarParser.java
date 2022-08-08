@@ -379,6 +379,18 @@ public class DjolarParser {
       } else {
         return value;
       }
+    } else if (field.getFieldType().equals(Integer.class)) {
+      return Integer.parseInt(value);
+    } else if (field.getFieldType().equals(Boolean.class)) {
+      return Boolean.parseBoolean(value);
+    } else if (field.getFieldType().equals(Long.class)) {
+      return Long.parseLong(value);
+    } else if (field.getFieldType().equals(Float.class)) {
+      return Float.parseFloat(value);
+    } else if (field.getFieldType().equals(Double.class)) {
+      return Double.parseDouble(value);
+    } else if (field.getFieldType().equals(Short.class)) {
+      return Short.parseShort(value);
     } else {
       return null;
     }

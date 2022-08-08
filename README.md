@@ -125,6 +125,12 @@ public class Test {
 
 ## Release Note
 
+## v1.4.1
+
+* Fix parser failed to parse value when mapping class using boxed type
+* Reorganize the benchmark codes
+* Upgrade maven version
+
 ## v1.4.0
 
 * Support `in` and `not in` operators
