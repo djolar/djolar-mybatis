@@ -207,19 +207,22 @@ public abstract class BaseTest extends SessionAwareManager {
   @Test
   void testQueryRequestBuilder() {
     QueryRequest queryRequest = QueryRequestBuilder.newBuilder()
-        .addQuery("col1", Op.Equal, "1")
-        .addQuery("col2", Op.LessThan, "2")
-        .addQuery("col3", Op.LessThanOrEqual, "3")
-        .addQuery("col4", Op.GreaterThan, "4")
-        .addQuery("col5", Op.GreaterThanOrEqual, "5")
-        .addQuery("col6", Op.Contain, "6")
-        .addQuery("col7", Op.StartsWith, "7")
-        .addQuery("col8", Op.EndsWith, "8")
-        .build();
+      .addQuery("col1", Op.Equal, "1")
+      .addQuery("col2", Op.LessThan, "2")
+      .addQuery("col3", Op.LessThanOrEqual, "3")
+      .addQuery("col4", Op.GreaterThan, "4")
+      .addQuery("col5", Op.GreaterThanOrEqual, "5")
+      .addQuery("col6", Op.Contain, "6")
+      .addQuery("col7", Op.StartsWith, "7")
+      .addQuery("col8", Op.EndsWith, "8")
+      .addQuery("col9", Op.IsNull, null)
+      .addQuery("col10", Op.IsNotNull, null)
+      .build();
 
     Assertions.assertEquals(
-        "col1__eq__1|col2__lt__2|col3__le__3|col4__gt__4|col5__ge__5|col6__co__6|col7__sw__7|col8__ew__8",
-        queryRequest.getQuery());
+      "col1__eq__1|col2__lt__2|col3__le__3|col4__gt__4|" +
+        "col5__ge__5|col6__co__6|col7__sw__7|col8__ew__8|col9__nu|col10__nn",
+      queryRequest.getQuery());
   }
 
   @Test
