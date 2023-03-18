@@ -19,6 +19,7 @@
 package com.enixyu.djolar.mybatis.plugin;
 
 import com.enixyu.djolar.mybatis.domain.Blog;
+import com.enixyu.djolar.mybatis.exceptions.DjolarParserException;
 import com.enixyu.djolar.mybatis.mapper.BlogMapper;
 import com.enixyu.djolar.mybatis.parser.Op;
 import com.enixyu.djolar.mybatis.parser.QueryRequest;
@@ -233,6 +234,38 @@ public abstract class BaseTest extends SessionAwareManager {
       request.setQuery("user_id__eq__1");
       List<Blog> results = mapper.findBlogWithUser(request);
       Assertions.assertEquals(3, results.size());
+    }
+  }
+
+  @Test
+  void testQueryFieldNotFoundInMapping() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest request = new QueryRequest();
+      request.setQuery("no_such_field__eq__1");
+      Assertions.assertThrows(DjolarParserException.class, () -> {
+        try {
+          mapper.findBlogWithUser(request);
+        } catch (Exception e) {
+          throw e.getCause();
+        }
+      });
+    }
+  }
+
+  @Test
+  void testUnsupportedOperator() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest request = new QueryRequest();
+      request.setQuery("user_id__xx__1");
+      Assertions.assertThrows(DjolarParserException.class, () -> {
+        try {
+          mapper.findBlogWithUser(request);
+        } catch (Exception e) {
+          throw e.getCause();
+        }
+      });
     }
   }
 }

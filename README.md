@@ -125,6 +125,11 @@ public class Test {
 
 ## Release Note
 
+## v1.6.0
+
+* Throw `DjolarParserException` if query field not found in query mapping
+* Throw `DjolarParserException` if operator is not supported
+
 ## v1.4.1
 
 * Fix parser failed to parse value when mapping class using boxed type

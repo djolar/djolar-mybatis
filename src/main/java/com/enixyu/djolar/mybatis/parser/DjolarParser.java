@@ -70,8 +70,8 @@ public class DjolarParser {
     Column column = field.getAnnotation(Column.class);
     if (column == null) {
       queryMapping.set(
-          field.getName(),
-          new QueryMapping.Item(tableName, field.getName(), field.getType())
+        field.getName(),
+        new QueryMapping.Item(tableName, field.getName(), field.getType())
       );
       return;
     }
@@ -79,13 +79,13 @@ public class DjolarParser {
     tableName = column.tableName().equals("") ? tableName : column.tableName();
     String fieldName = column.columnName().equals("") ? field.getName() : column.columnName();
     queryMapping.set(
-        column.queryAlias(),
-        new QueryMapping.Item(tableName, fieldName, field.getType())
+      column.queryAlias(),
+      new QueryMapping.Item(tableName, fieldName, field.getType())
     );
   }
 
   public ParseResult parse(MappedStatement ms, BoundSql boundSql, QueryRequest request)
-      throws DjolarParserException {
+    throws DjolarParserException {
     Matcher matcher = mapperIdPattern.matcher(ms.getId());
     if (!matcher.find() || matcher.groupCount() != 2) {
       // skip djolar interceptor
@@ -126,20 +126,20 @@ public class DjolarParser {
     AdditionalWhere additionalWhere = method.getAnnotation(AdditionalWhere.class);
     if (additionalWhere != null) {
       String query = Optional.ofNullable(request.getQuery())
-          .map(String::trim)
-          .map(q -> q.length() == 0 ? null : q)
-          .map(q -> q + "|" + additionalWhere.where())
-          .orElse(additionalWhere.where());
+        .map(String::trim)
+        .map(q -> q.length() == 0 ? null : q)
+        .map(q -> q + "|" + additionalWhere.where())
+        .orElse(additionalWhere.where());
       request.setQuery(query);
     }
 
     AdditionalSort additionalSort = method.getAnnotation(AdditionalSort.class);
     if (additionalSort != null) {
       String sort = Optional.ofNullable(request.getSort())
-          .map(String::trim)
-          .map(s -> s.length() == 0 ? null : s)
-          .map(s -> s + "," + additionalSort.sort())
-          .orElse(additionalSort.sort());
+        .map(String::trim)
+        .map(s -> s.length() == 0 ? null : s)
+        .map(s -> s + "," + additionalSort.sort())
+        .orElse(additionalSort.sort());
       request.setSort(sort);
     }
 
@@ -152,12 +152,12 @@ public class DjolarParser {
 
     // parse where clause
     List<WhereClause> whereClauseList = parseQueryFields(
-        request.getQuery(),
-        queryMapping,
-        ms,
-        parameterMappings,
-        parameterObject,
-        additionalParameters);
+      request.getQuery(),
+      queryMapping,
+      ms,
+      parameterMappings,
+      parameterObject,
+      additionalParameters);
 
     // parse order by clause
     List<String> orderByClauseList = parseOrderByFields(request.getSort());
@@ -168,7 +168,7 @@ public class DjolarParser {
     if (whereClauseList != null && whereClauseList.size() > 0) {
       sqlbuilder.append(" WHERE ");
       String where = whereClauseList.stream().map(dialect::buildWhere)
-          .collect(Collectors.joining(" AND "));
+        .collect(Collectors.joining(" AND "));
       sqlbuilder.append(where);
     }
     if (orderByClauseList != null && orderByClauseList.iterator().hasNext()) {
@@ -176,16 +176,16 @@ public class DjolarParser {
       sqlbuilder.append(String.join(",", orderByClauseList));
     }
     BoundSql newBoundSql = new BoundSql(ms.getConfiguration(), sqlbuilder.toString(),
-        parameterMappings, parameterObject);
+      parameterMappings, parameterObject);
     additionalParameters.keySet()
-        .forEach(k -> newBoundSql.setAdditionalParameter(k, additionalParameters.get(k)));
+      .forEach(k -> newBoundSql.setAdditionalParameter(k, additionalParameters.get(k)));
     return new ParseResult(newBoundSql, parameterObject);
   }
 
   private QueryMapping loadQueryMapping(String id, Class<?> fieldMappingClass) {
     Table tableNameAnnotation = fieldMappingClass.getAnnotation(Table.class);
     String tableName = tableNameAnnotation != null ? tableNameAnnotation.value()
-        : fieldMappingClass.getName().toLowerCase();
+      : fieldMappingClass.getName().toLowerCase();
     return cachedQueryMapping.computeIfAbsent(id, k -> {
       QueryMapping mapping = new QueryMapping();
       List<Field> allFields = getAllFields(fieldMappingClass);
@@ -241,21 +241,21 @@ public class DjolarParser {
    * @return WhereClause list
    */
   private List<WhereClause> parseQueryFields(String query,
-      QueryMapping queryMapping,
-      MappedStatement ms,
-      List<ParameterMapping> parameterMappings,
-      Map<String, Object> parameterObject,
-      Map<String, Object> additionalParameters) {
+    QueryMapping queryMapping,
+    MappedStatement ms,
+    List<ParameterMapping> parameterMappings,
+    Map<String, Object> parameterObject,
+    Map<String, Object> additionalParameters) throws DjolarParserException {
     if (query == null) {
       return null;
     }
     String[] tokens = query.split("\\|");
     return IntStream.range(0, tokens.length)
-        .mapToObj(
-            i -> parseQueryItem(i, tokens[i], queryMapping, ms, parameterMappings, parameterObject,
-                additionalParameters))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+      .mapToObj(
+        i -> parseQueryItem(i, tokens[i], queryMapping, ms, parameterMappings, parameterObject,
+          additionalParameters))
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
   }
 
   /**
@@ -272,12 +272,12 @@ public class DjolarParser {
    */
   @SuppressWarnings("unchecked")
   private WhereClause parseQueryItem(int index,
-      String item,
-      QueryMapping queryMapping,
-      MappedStatement ms,
-      List<ParameterMapping> parameterMappings,
-      Map<String, Object> parameterObject,
-      Map<String, Object> additionalParameters) {
+    String item,
+    QueryMapping queryMapping,
+    MappedStatement ms,
+    List<ParameterMapping> parameterMappings,
+    Map<String, Object> parameterObject,
+    Map<String, Object> additionalParameters) throws DjolarParserException {
     String[] groups = item.split("__");
     if (groups.length != 2 && groups.length != 3) {
       return null;
@@ -286,18 +286,22 @@ public class DjolarParser {
     // get field
     String fieldName = groups[0];
     QueryMapping.Item field = queryMapping.get(fieldName);
+    if (field == null) {
+      throw new DjolarParserException(String.format("'%s' not found in query mapping", fieldName));
+    }
 
     // get operator
     String op = groups[1];
     Op operator = Op.fromString(op);
-    if (operator == null || field == null) {
-      return null;
+    if (operator == null) {
+      throw new DjolarParserException(
+        String.format("operator '%s' is not supported by djolar", op));
     }
 
     if (groups.length == 2) {
       // clause without value case
       return new WhereClause(field.getTableName(), field.getFieldName(), operator, null,
-          field.getFieldType());
+        field.getFieldType());
     }
 
     // parse value
@@ -314,32 +318,32 @@ public class DjolarParser {
         Object itemParsedValue = parseValue(field, operator, token);
         ((List<Object>) parsedValue).add(itemParsedValue);
         String property = String.format("%s_%s_%d_%d", field.getTableName(), field.getFieldName(),
-            index, i);
+          index, i);
         ParameterMapping parameterMapping = new ParameterMapping.Builder(
-            ms.getConfiguration(),
-            property,
-            fieldType).build();
+          ms.getConfiguration(),
+          property,
+          fieldType).build();
         parameterMappings.add(parameterMapping);
         additionalParameters.put(property, itemParsedValue);
       }
       String property = String.format("%s_%s_%d", field.getTableName(), field.getFieldName(),
-          index);
+        index);
       parameterObject.put(property, parsedValue);
     } else {
       // Single value case
       parsedValue = parseValue(field, operator, value);
       String property = String.format("%s_%s_%d", field.getTableName(), field.getFieldName(),
-          index);
+        index);
       ParameterMapping parameterMapping = new ParameterMapping.Builder(
-          ms.getConfiguration(),
-          property,
-          fieldType).build();
+        ms.getConfiguration(),
+        property,
+        fieldType).build();
       parameterMappings.add(parameterMapping);
       parameterObject.put(property, parsedValue);
     }
 
     return new WhereClause(field.getTableName(), field.getFieldName(), operator, parsedValue,
-        fieldType);
+      fieldType);
   }
 
   /**
@@ -418,8 +422,8 @@ public class DjolarParser {
         return null;
       }
       return (matcher.group(1) != null && "-".equals(matcher.group(1)))
-          ? matcher.group(2) + " DESC"
-          : matcher.group(2) + " ASC";
+        ? matcher.group(2) + " DESC"
+        : matcher.group(2) + " ASC";
     }).filter(Objects::nonNull).collect(Collectors.toList());
   }
 
