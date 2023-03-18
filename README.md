@@ -125,6 +125,10 @@ public class Test {
 
 ## Release Note
 
+## v1.6.1
+
+* Throw `DjolarParserException` if sort field not found in query mapping.
+
 ## v1.6.0
 
 * Throw `DjolarParserException` if query field not found in query mapping

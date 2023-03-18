@@ -160,7 +160,7 @@ public class DjolarParser {
       additionalParameters);
 
     // parse order by clause
-    List<String> orderByClauseList = parseOrderByFields(request.getSort());
+    List<String> orderByClauseList = parseOrderByFields(request.getSort(), queryMapping);
 
     // build new bound sql with where clauses and order clauses
     String sql = boundSql.getSql();
@@ -406,7 +406,7 @@ public class DjolarParser {
    * @param orderBy order by clause
    * @return order by statements
    */
-  private List<String> parseOrderByFields(String orderBy) {
+  private List<String> parseOrderByFields(String orderBy, QueryMapping queryMapping) {
     if (orderBy == null) {
       return null;
     }
@@ -416,15 +416,24 @@ public class DjolarParser {
     }
 
     String[] tokens = orderBy.split(",");
+    String finalOrderBy = orderBy;
     return Arrays.stream(tokens).map(part -> {
       Matcher matcher = orderByPattern.matcher(part);
       if (!matcher.find()) {
-        return null;
+        throw new DjolarParserException(
+          String.format("invalid order by clause: '%s'", finalOrderBy));
       }
-      return (matcher.group(1) != null && "-".equals(matcher.group(1)))
-        ? matcher.group(2) + " DESC"
-        : matcher.group(2) + " ASC";
-    }).filter(Objects::nonNull).collect(Collectors.toList());
+      String ascDesc = matcher.group(1);
+      String fieldName = matcher.group(2);
+      QueryMapping.Item field = queryMapping.get(fieldName);
+      if (field == null) {
+        throw new DjolarParserException(
+          String.format("sort field '%s' not found in query mapping", fieldName));
+      }
+      return ("-".equals(ascDesc))
+        ? field.getFieldName() + " DESC"
+        : field.getFieldName() + " ASC";
+    }).collect(Collectors.toList());
   }
 
   private List<Field> getAllFields(Class<?> cls) {

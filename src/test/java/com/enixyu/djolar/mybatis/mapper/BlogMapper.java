@@ -35,7 +35,7 @@ public interface BlogMapper {
   List<Blog> findAll(QueryRequest request);
 
   @AdditionalWhere(where = "user_id__eq__1")
-  @AdditionalSort(sort = "-id,name")
+  @AdditionalSort(sort = "-id")
   List<Blog> findMyBlogs(QueryRequest request);
 
   Blog findById(int id);
@@ -44,5 +44,5 @@ public interface BlogMapper {
   List<Blog> findBlogWithUser(QueryRequest request);
 
   List<Blog> findBlogWithIdRange(@Param("ids1") List<Integer> ids1,
-      @Param("ids2") List<Integer> ids2);
+    @Param("ids2") List<Integer> ids2);
 }

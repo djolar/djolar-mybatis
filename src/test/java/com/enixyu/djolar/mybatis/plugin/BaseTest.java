@@ -268,4 +268,20 @@ public abstract class BaseTest extends SessionAwareManager {
       });
     }
   }
+
+  @Test
+  void testSortFieldNotFoundInMapping() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest request = new QueryRequest();
+      request.setSort("-no_such_field");
+      Assertions.assertThrows(DjolarParserException.class, () -> {
+        try {
+          mapper.findBlogWithUser(request);
+        } catch (Exception e) {
+          throw e.getCause();
+        }
+      });
+    }
+  }
 }
