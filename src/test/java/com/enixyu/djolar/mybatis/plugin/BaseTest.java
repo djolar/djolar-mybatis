@@ -284,4 +284,20 @@ public abstract class BaseTest extends SessionAwareManager {
       });
     }
   }
+
+  @Test
+  void testMultiParameterMapperMethod() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest request = new QueryRequest();
+      request.setQuery("n__eq__abc1");
+      List<Blog> results = mapper.findMyBlogs(request, 1, 0L);
+      Assertions.assertEquals(1, results.size());
+
+      request.setQuery("n__eq__abc4");
+      request.setSort(null);
+      results = mapper.findMyBlogs(request);
+      Assertions.assertEquals(0, results.size());
+    }
+  }
 }

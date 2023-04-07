@@ -24,8 +24,7 @@ import com.enixyu.djolar.mybatis.annotation.Column;
 import com.enixyu.djolar.mybatis.annotation.Mapping;
 import com.enixyu.djolar.mybatis.annotation.Table;
 import com.enixyu.djolar.mybatis.dialect.Dialect;
-import com.enixyu.djolar.mybatis.dialect.MySQLDialect;
-import com.enixyu.djolar.mybatis.dialect.PostgreSQLDialect;
+import com.enixyu.djolar.mybatis.dialect.DjolarAutoDialect;
 import com.enixyu.djolar.mybatis.exceptions.DjolarParserException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -51,15 +50,15 @@ import org.apache.ibatis.mapping.ParameterMapping;
 
 public class DjolarParser {
 
-  private static final Map<String, Class<? extends Dialect>> dialectMapping;
   private static final Map<String, QueryMapping> cachedQueryMapping;
+  private final DjolarAutoDialect djolarAutoDialect;
 
   static {
-    dialectMapping = new HashMap<>();
-    dialectMapping.put("mysql", MySQLDialect.class);
-    dialectMapping.put("postgresql", PostgreSQLDialect.class);
-
     cachedQueryMapping = new ConcurrentHashMap<>();
+  }
+
+  public DjolarParser(DjolarAutoDialect djolarAutoDialect) {
+    this.djolarAutoDialect = djolarAutoDialect;
   }
 
   private final Pattern orderByPattern = Pattern.compile("^([-+])?(.*)$");
@@ -199,7 +198,7 @@ public class DjolarParser {
       return;
     }
 
-    synchronized (dialectMapping) {
+    synchronized (this) {
       if (dialect != null) {
         return;
       }
@@ -210,7 +209,7 @@ public class DjolarParser {
         throw new DjolarParserException("invalid jdbc url");
       }
 
-      Class<? extends Dialect> dialectClz = dialectMapping.get(tokens[1]);
+      Class<? extends Dialect> dialectClz = djolarAutoDialect.resolveDialect(tokens[1]);
       try {
         dialect = dialectClz.getDeclaredConstructor().newInstance();
       } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |

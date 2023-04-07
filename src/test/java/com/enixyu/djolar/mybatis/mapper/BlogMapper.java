@@ -38,6 +38,10 @@ public interface BlogMapper {
   @AdditionalSort(sort = "-id")
   List<Blog> findMyBlogs(QueryRequest request);
 
+  @AdditionalWhere(where = "user_id__eq__1")
+  @AdditionalSort(sort = "-id")
+  List<Blog> findMyBlogs(QueryRequest request, int i, Long j);
+
   Blog findById(int id);
 
   @Mapping(BlogDjolarMapping.class)

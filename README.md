@@ -125,6 +125,11 @@ public class Test {
 
 ## Release Note
 
+## v1.7.0
+
+1. Support customize `dialect` class.
+2. Support mapper method with multiple parameters including `QueryRequest` parameter.
+
 ## v1.6.1
 
 * Throw `DjolarParserException` if sort field not found in query mapping.
