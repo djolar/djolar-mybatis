@@ -76,7 +76,7 @@ public class DjolarInterceptor implements Interceptor {
         return invocation.proceed();
       }
       queryRequest = (QueryRequest) optionalQueryRequest.get();
-    } else if (parameter.getClass().isAssignableFrom(QueryRequest.class)) {
+    } else if (parameter != null && parameter.getClass().isAssignableFrom(QueryRequest.class)) {
       queryRequest = (QueryRequest) parameter;
     } else {
       // Parameter type not correct, skip this interceptor

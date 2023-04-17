@@ -39,6 +39,7 @@ public class DjolarAutoDialect {
     dialects.put("postgresql", PostgreSQLDialect.class);
   }
 
+  @SuppressWarnings("unchecked")
   public void initAutoDialect(Properties properties) {
     String dialectClassName = properties.getProperty("dialect");
     if (dialectClassName != null && dialectClassName.length() > 0) {

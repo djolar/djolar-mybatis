@@ -125,6 +125,10 @@ public class Test {
 
 ## Release Note
 
+## v1.7.1
+
+1. Fix no-parameter mapper method crash issue.
+
 ## v1.7.0
 
 1. Support customize `dialect` class.

@@ -45,7 +45,7 @@ public enum Op {
   private final String symbol;
   private final byte numOfOperands;
 
-  private Op(String value, String symbol, byte numOfOperands) {
+  Op(String value, String symbol, byte numOfOperands) {
     this.value = value;
     this.symbol = symbol;
     this.numOfOperands = numOfOperands;
