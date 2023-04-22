@@ -6,7 +6,7 @@
 
   <groupId>com.enixyu</groupId>
   <artifactId>djolar-mybatis</artifactId>
-  <version>1.7.2</version>
+  <version>1.7.3</version>
   <packaging>jar</packaging>
   <name>djolar-mybatis</name>
   <description>Djolar plugin for mybatis</description>
@@ -45,7 +45,7 @@
     <dependency>
       <groupId>org.mybatis</groupId>
       <artifactId>mybatis</artifactId>
-      <version>3.5.9</version>
+      <version>3.5.13</version>
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
@@ -54,21 +54,21 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.9.0</version>
+      <version>5.9.2</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
-      <version>8.0.30</version>
+      <version>8.0.32</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.5.1</version>
+      <version>42.5.4</version>
       <scope>test</scope>
     </dependency>
 

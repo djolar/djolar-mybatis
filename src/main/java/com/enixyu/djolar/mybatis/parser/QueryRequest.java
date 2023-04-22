@@ -83,6 +83,19 @@ public class QueryRequest {
     this.having = having;
   }
 
+  public QueryRequest(String query, String sort, String group, String having, int limit,
+    int offset) {
+    this.query = query;
+    this.sort = sort;
+    this.group = group;
+    this.having = having;
+    this.limit = limit;
+    this.offset = offset;
+  }
+
+  public QueryRequest() {
+  }
+
   public static class QueryRequestBuilder {
 
     private final List<String> query;
