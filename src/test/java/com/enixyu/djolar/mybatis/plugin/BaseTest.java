@@ -19,6 +19,8 @@
 package com.enixyu.djolar.mybatis.plugin;
 
 import com.enixyu.djolar.mybatis.domain.Blog;
+import com.enixyu.djolar.mybatis.domain.BlogQueryRequest;
+import com.enixyu.djolar.mybatis.domain.UserQueryRequest;
 import com.enixyu.djolar.mybatis.exceptions.DjolarParserException;
 import com.enixyu.djolar.mybatis.mapper.BlogMapper;
 import com.enixyu.djolar.mybatis.parser.Op;
@@ -286,17 +288,33 @@ public abstract class BaseTest extends SessionAwareManager {
   }
 
   @Test
-  void testMultiParameterMapperMethod() {
+  void testSelectWithQueryRequestSubclass() {
     try (SqlSession session = this.sessionFactory.openSession()) {
       BlogMapper mapper = session.getMapper(BlogMapper.class);
-      QueryRequest request = new QueryRequest();
+      UserQueryRequest request = new UserQueryRequest(1);
       request.setQuery("n__eq__abc1");
-      List<Blog> results = mapper.findMyBlogs(request, 1, 0L);
+      List<Blog> results = mapper.findByUserQueryRequest(request);
       Assertions.assertEquals(1, results.size());
 
-      request.setQuery("n__eq__abc4");
-      request.setSort(null);
-      results = mapper.findMyBlogs(request);
+      request.setUserId(2);
+      request.setQuery("n__eq__abc1");
+      results = mapper.findByUserQueryRequest(request);
+      Assertions.assertEquals(0, results.size());
+    }
+  }
+
+  @Test
+  void testSelectWithBlogQueryRequest() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      BlogQueryRequest request = new BlogQueryRequest(1);
+      request.setQuery("n__eq__abc1");
+      List<Blog> results = mapper.findByBlogQueryRequest(request);
+      Assertions.assertEquals(1, results.size());
+
+      request.setUserId(2);
+      request.setQuery("n__eq__abc1");
+      results = mapper.findByBlogQueryRequest(request);
       Assertions.assertEquals(0, results.size());
     }
   }

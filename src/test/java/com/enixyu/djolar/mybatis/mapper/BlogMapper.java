@@ -22,6 +22,8 @@ import com.enixyu.djolar.mybatis.annotation.AdditionalSort;
 import com.enixyu.djolar.mybatis.annotation.AdditionalWhere;
 import com.enixyu.djolar.mybatis.annotation.Mapping;
 import com.enixyu.djolar.mybatis.domain.Blog;
+import com.enixyu.djolar.mybatis.domain.BlogQueryRequest;
+import com.enixyu.djolar.mybatis.domain.UserQueryRequest;
 import com.enixyu.djolar.mybatis.mapping.BlogDjolarMapping;
 import com.enixyu.djolar.mybatis.parser.QueryRequest;
 import java.util.List;
@@ -31,6 +33,8 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 @Mapping(Blog.class)
 public interface BlogMapper {
+
+  List<Blog> find();
 
   List<Blog> findAll(QueryRequest request);
 
@@ -49,4 +53,8 @@ public interface BlogMapper {
 
   List<Blog> findBlogWithIdRange(@Param("ids1") List<Integer> ids1,
     @Param("ids2") List<Integer> ids2);
+
+  List<Blog> findByUserQueryRequest(UserQueryRequest request);
+
+  List<Blog> findByBlogQueryRequest(BlogQueryRequest request);
 }

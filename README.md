@@ -125,6 +125,11 @@ public class Test {
 
 ## Release Note
 
+## v1.7.2
+
+1. Support `QueryRequest` subclass as mapper parameter.
+2. Remove multiple parameters support.
+
 ## v1.7.1
 
 1. Fix no-parameter mapper method crash issue.
@@ -132,7 +137,7 @@ public class Test {
 ## v1.7.0
 
 1. Support customize `dialect` class.
-2. Support mapper method with multiple parameters including `QueryRequest` parameter.
+2. ~~Support mapper method with multiple parameters including `QueryRequest` parameter.~~
 
 ## v1.6.1
 

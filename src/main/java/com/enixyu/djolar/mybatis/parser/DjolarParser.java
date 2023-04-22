@@ -51,10 +51,12 @@ import org.apache.ibatis.mapping.ParameterMapping;
 public class DjolarParser {
 
   private static final Map<String, QueryMapping> cachedQueryMapping;
+  private static final Map<Class<?>, List<Field>> cachedClassFields;
   private final DjolarAutoDialect djolarAutoDialect;
 
   static {
     cachedQueryMapping = new ConcurrentHashMap<>();
+    cachedClassFields = new ConcurrentHashMap<>();
   }
 
   public DjolarParser(DjolarAutoDialect djolarAutoDialect) {
@@ -105,7 +107,7 @@ public class DjolarParser {
     Mapping mappingAnnotation;
     Method method;
     try {
-      method = mapperClass.getMethod(mapperMethod, QueryRequest.class);
+      method = mapperClass.getMethod(mapperMethod, request.getClass());
       mappingAnnotation = method.getAnnotation(Mapping.class);
       if (mappingAnnotation == null) {
         // get field mapping from class
@@ -145,8 +147,8 @@ public class DjolarParser {
     ensureDialect(ms);
 
     QueryMapping queryMapping = loadQueryMapping(ms.getId(), mappingAnnotation.value());
-    List<ParameterMapping> parameterMappings = new ArrayList<>();
-    Map<String, Object> parameterObject = new HashMap<>();
+    List<ParameterMapping> parameterMappings = new ArrayList<>(boundSql.getParameterMappings());
+    Map<String, Object> parameterObject = initParameterObject(boundSql);
     Map<String, Object> additionalParameters = new HashMap<>();
 
     // parse where clause
@@ -181,18 +183,64 @@ public class DjolarParser {
     return new ParseResult(newBoundSql, parameterObject);
   }
 
+  /**
+   * Create parameter object as hash map with given bound sql
+   * <p></p>
+   * <p>
+   * if no parameter object in bound sql, empty map is returned, otherwise, field/value mapping is
+   * returned.
+   * </p>
+   *
+   * @param boundSql bound sql
+   * @return map
+   */
+  private Map<String, Object> initParameterObject(BoundSql boundSql) {
+    HashMap<String, Object> parameterObject = new HashMap<>();
+    Object originParameterObject = boundSql.getParameterObject();
+    if (originParameterObject == null) {
+      return parameterObject;
+    }
+    Class<?> cls = originParameterObject.getClass();
+    List<Field> fields = cachedClassFields.computeIfAbsent(cls, (ignored) -> getAllFields(cls));
+    boundSql.getParameterMappings().forEach((elem) -> fields.stream()
+      .filter(f -> f.getName().equals(elem.getProperty()))
+      .findFirst()
+      .ifPresent(f -> {
+        try {
+          f.setAccessible(true);
+          parameterObject.put(elem.getProperty(), f.get(originParameterObject));
+        } catch (IllegalAccessException ignored) {
+        }
+      }));
+    return parameterObject;
+  }
+
+  /**
+   * Get query mapping for given mapper
+   *
+   * @param id                mapped statement id
+   * @param fieldMappingClass mapping class
+   * @return query mapping
+   */
   private QueryMapping loadQueryMapping(String id, Class<?> fieldMappingClass) {
     Table tableNameAnnotation = fieldMappingClass.getAnnotation(Table.class);
     String tableName = tableNameAnnotation != null ? tableNameAnnotation.value()
       : fieldMappingClass.getName().toLowerCase();
     return cachedQueryMapping.computeIfAbsent(id, k -> {
       QueryMapping mapping = new QueryMapping();
-      List<Field> allFields = getAllFields(fieldMappingClass);
+      List<Field> allFields = cachedClassFields.computeIfAbsent(fieldMappingClass,
+        (ignored) -> getAllFields(fieldMappingClass));
       allFields.forEach(f -> reduceFieldMapping(f, mapping, tableName));
       return mapping;
     });
   }
 
+  /**
+   * Setup dialect according to given mapped statement
+   *
+   * @param ms mapped statement
+   * @throws DjolarParserException sql exception
+   */
   private void ensureDialect(MappedStatement ms) throws DjolarParserException {
     if (dialect != null) {
       return;
@@ -219,6 +267,13 @@ public class DjolarParser {
     }
   }
 
+  /**
+   * Get JDBC url from mapped statement
+   *
+   * @param ms mapped statement
+   * @return jdbc url
+   * @throws DjolarParserException sql exception
+   */
   private String getJdbcUrl(MappedStatement ms) throws DjolarParserException {
     DataSource dataSource = ms.getConfiguration().getEnvironment().getDataSource();
     try (Connection connection = dataSource.getConnection()) {
@@ -435,6 +490,12 @@ public class DjolarParser {
     }).collect(Collectors.toList());
   }
 
+  /**
+   * Recursively Get all fields from given class and its super class
+   *
+   * @param cls class
+   * @return field list
+   */
   private List<Field> getAllFields(Class<?> cls) {
     List<Field> fields = new ArrayList<>(Arrays.asList(cls.getDeclaredFields()));
     // get super class fields

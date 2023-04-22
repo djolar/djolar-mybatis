@@ -34,4 +34,14 @@
       </foreach>
     </where>
   </select>
+
+  <select id="findByUserQueryRequest" resultType="com.enixyu.djolar.mybatis.domain.Blog">
+    SELECT * FROM "blog"
+    INNER JOIN "user" ON "blog"."user_id" = "user"."id" AND "user"."id" = #{userId}
+  </select>
+
+  <select id="findByBlogQueryRequest" resultType="com.enixyu.djolar.mybatis.domain.Blog">
+    SELECT * FROM "blog"
+    INNER JOIN "user" ON "blog"."user_id" = "user"."id" AND "user"."id" = #{userId}
+  </select>
 </mapper>

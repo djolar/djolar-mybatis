@@ -22,9 +22,7 @@ import com.enixyu.djolar.mybatis.dialect.DjolarAutoDialect;
 import com.enixyu.djolar.mybatis.parser.DjolarParser;
 import com.enixyu.djolar.mybatis.parser.ParseResult;
 import com.enixyu.djolar.mybatis.parser.QueryRequest;
-import java.util.Optional;
 import java.util.Properties;
-import org.apache.ibatis.binding.MapperMethod.ParamMap;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
@@ -57,7 +55,6 @@ public class DjolarInterceptor implements Interceptor {
   }
 
   @Override
-  @SuppressWarnings({"unchecked", "rawtypes"})
   public Object intercept(Invocation invocation) throws Throwable {
     Object[] args = invocation.getArgs();
     Executor executor = (Executor) invocation.getTarget();
@@ -68,15 +65,7 @@ public class DjolarInterceptor implements Interceptor {
     BoundSql boundSql = args.length > 4 ? (BoundSql) args[5] : ms.getBoundSql(parameter);
 
     QueryRequest queryRequest;
-    if (parameter instanceof ParamMap) {
-      Optional optionalQueryRequest = ((ParamMap) parameter).values().stream()
-        .filter(p -> p.getClass().isAssignableFrom(QueryRequest.class))
-        .findFirst();
-      if (!optionalQueryRequest.isPresent()) {
-        return invocation.proceed();
-      }
-      queryRequest = (QueryRequest) optionalQueryRequest.get();
-    } else if (parameter != null && parameter.getClass().isAssignableFrom(QueryRequest.class)) {
+    if (parameter != null && QueryRequest.class.isAssignableFrom(parameter.getClass())) {
       queryRequest = (QueryRequest) parameter;
     } else {
       // Parameter type not correct, skip this interceptor

@@ -3,6 +3,10 @@
   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.enixyu.djolar.mybatis.mapper.BlogMapper">
+  <select id="find" resultType="com.enixyu.djolar.mybatis.domain.Blog">
+    SELECT * FROM `blog`
+  </select>
+
   <select id="findAll" resultType="com.enixyu.djolar.mybatis.domain.Blog">
     SELECT * FROM `blog`
   </select>
@@ -33,5 +37,15 @@
         #{id, jdbcType=NUMERIC}
       </foreach>
     </where>
+  </select>
+
+  <select id="findByUserQueryRequest" resultType="com.enixyu.djolar.mybatis.domain.Blog">
+    SELECT * FROM `blog`
+    INNER JOIN `user` ON `blog`.`user_id` = `user`.`id` AND `user`.`id` = #{userId}
+  </select>
+
+  <select id="findByBlogQueryRequest" resultType="com.enixyu.djolar.mybatis.domain.Blog">
+    SELECT * FROM `blog`
+    INNER JOIN `user` ON `blog`.`user_id` = `user`.`id` AND `user`.`id` = #{userId}
   </select>
 </mapper>
