@@ -29,6 +29,7 @@ import com.enixyu.djolar.mybatis.parser.QueryRequest.QueryRequestBuilder;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import java.util.List;
+import org.apache.ibatis.exceptions.PersistenceException;
 import org.apache.ibatis.session.SqlSession;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -88,6 +89,18 @@ public abstract class BaseTest extends SessionAwareManager {
       List<Blog> results = mapper.findAll(request);
       Assertions.assertEquals(2, results.size());
     }
+  }
+
+  @Test
+  void testEmptyIn() {
+    Assertions.assertThrows(PersistenceException.class, () -> {
+      try (SqlSession session = this.sessionFactory.openSession()) {
+        BlogMapper mapper = session.getMapper(BlogMapper.class);
+        QueryRequest request = new QueryRequest();
+        request.setQuery("id__in__");
+        mapper.findAll(request);
+      }
+    });
   }
 
   @Test

@@ -30,33 +30,38 @@ public class MySQLDialect implements Dialect {
       case IsNull:
       case IsNotNull:
         return String.format("`%s`.`%s` %s",
-            whereClause.getTableName(),
-            whereClause.getColumnName(),
-            whereClause.getOperator().getSymbol()
+          whereClause.getTableName(),
+          whereClause.getColumnName(),
+          whereClause.getOperator().getSymbol()
         );
       case IgnoreCaseContain:
         return String.format("LOWER(`%s`.`%s`) %s LOWER(?)",
-            whereClause.getTableName(),
-            whereClause.getColumnName(),
-            whereClause.getOperator().getSymbol()
+          whereClause.getTableName(),
+          whereClause.getColumnName(),
+          whereClause.getOperator().getSymbol()
         );
       case In:
-      case NotIn:
-        String mark = ((List<?>) whereClause.getValue())
-            .stream()
-            .map(ignore -> "?")
-            .collect(Collectors.joining(","));
+      case NotIn: {
+        Object inVal = whereClause.getValue();
+        if (!(inVal instanceof List)) {
+          throw new IllegalArgumentException("IN value should be a valid list");
+        }
+        String mark = ((List<?>) inVal)
+          .stream()
+          .map(ignore -> "?")
+          .collect(Collectors.joining(","));
         return String.format("`%s`.`%s` %s (%s)",
-            whereClause.getTableName(),
-            whereClause.getColumnName(),
-            whereClause.getOperator().getSymbol(),
-            mark
+          whereClause.getTableName(),
+          whereClause.getColumnName(),
+          whereClause.getOperator().getSymbol(),
+          mark
         );
+      }
       default:
         return String.format("`%s`.`%s` %s ?",
-            whereClause.getTableName(),
-            whereClause.getColumnName(),
-            whereClause.getOperator().getSymbol()
+          whereClause.getTableName(),
+          whereClause.getColumnName(),
+          whereClause.getOperator().getSymbol()
         );
     }
   }
