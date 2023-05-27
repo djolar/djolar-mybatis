@@ -26,6 +26,7 @@
 
 package com.enixyu.djolar.mybatis.dialect;
 
+import com.enixyu.djolar.mybatis.plugin.DjolarProperty;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -41,7 +42,7 @@ public class DjolarAutoDialect {
 
   @SuppressWarnings("unchecked")
   public void initAutoDialect(Properties properties) {
-    String dialectClassName = properties.getProperty("dialect");
+    String dialectClassName = properties.getProperty(DjolarProperty.KEY_DIALECT);
     if (dialectClassName != null && dialectClassName.length() > 0) {
       String[] tokens = dialectClassName.split("=");
       if (tokens.length != 2) {

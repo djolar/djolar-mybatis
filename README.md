@@ -55,75 +55,89 @@ support operators:
 
 1. Setup interceptor for mybatis
 
-```xml
-
-<plugins>
-  <!-- other interceptors -->
-  ...
-  <plugin interceptor="com.enixyu.djolar.mybatis.plugin.DjolarInterceptor"/>
-</plugins>
-```
+    ```xml
+    
+    <plugins>
+      <!-- other interceptors -->
+      ...
+      <plugin interceptor="com.enixyu.djolar.mybatis.plugin.DjolarInterceptor">
+        <!-- dialect for build sql query -->
+        <property name="dialect" value="mysql=com.enixyu.djolar.mybatis.dialect.MySQLDialect"/>
+        <!-- throw exception if field not found in mapping, possible values: true, false -->
+        <property name="throw-if-field-not-found" value="true"/>
+        <!-- throw exception if operator not supported, possible values: true, false -->
+        <property name="throw-if-operator-not-support" value="true"/>
+      </plugin>
+    </plugins>
+    ```
 
 2. Define mapper interface
 
-```java
-
-@Mapper
-// Specify the mapping class
-@Mapping(Blog.class)
-public interface BlogMapper {
-
-  // DjolarInterceptor only handle method with QueryRequest as parameter
-  List<Blog> findAll(QueryRequest request);
-
-  Blog findById(int id);
-
-  // Override the mapping class defined in class level
-  @Mapping(BlogDjolarMapping.class)
-  List<Blog> findBlogWithUser(QueryRequest request);
-}
-```
+    ```java
+    
+    @Mapper
+    // Specify the mapping class
+    @Mapping(Blog.class)
+    public interface BlogMapper {
+    
+      // DjolarInterceptor only handle method with QueryRequest as parameter
+      List<Blog> findAll(QueryRequest request);
+    
+      Blog findById(int id);
+    
+      // Override the mapping class defined in class level
+      @Mapping(BlogDjolarMapping.class)
+      List<Blog> findBlogWithUser(QueryRequest request);
+    }
+    ```
 
 3. Define the mapper xml
 
-```xml
-
-<mapper namespace="com.enixyu.djolar.mybatis.mapper.BlogMapper">
-  ...
-
-  <select id="findAll" resultType="com.enixyu.djolar.mybatis.domain.Blog">
-    SELECT * FROM `blog`
-  </select>
-
-  <select id="findBlogWithUser" resultType="com.enixyu.djolar.mybatis.domain.Blog">
-    SELECT `blog`.* FROM `blog`
-    INNER JOIN `user` ON `blog`.`user_id` = `user`.`id`
-  </select>
-
-  ...
-</mapper>
-```
+    ```xml
+    
+    <mapper namespace="com.enixyu.djolar.mybatis.mapper.BlogMapper">
+      ...
+    
+      <select id="findAll" resultType="com.enixyu.djolar.mybatis.domain.Blog">
+        SELECT * FROM `blog`
+      </select>
+    
+      <select id="findBlogWithUser" resultType="com.enixyu.djolar.mybatis.domain.Blog">
+        SELECT `blog`.* FROM `blog`
+        INNER JOIN `user` ON `blog`.`user_id` = `user`.`id`
+      </select>
+    
+      ...
+    </mapper>
+    ```
 
 4. Client make query
 
-```java
-public class Test {
-
-  @Test
-  public void testDjolarIntegerEqual() {
-    try (SqlSession session = this.sessionFactory.openSession()) {
-      BlogMapper mapper = session.getMapper(BlogMapper.class);
-      QueryRequest request = new QueryRequest();
-      // Get the records with `id` column equal to `1`
-      request.setQuery("id__eq__1");
-      List<Blog> results = mapper.findAll(request);
-      Assertions.assertEquals(1, results.size());
+    ```java
+    public class Test {
+    
+      @Test
+      public void testDjolarIntegerEqual() {
+        try (SqlSession session = this.sessionFactory.openSession()) {
+          BlogMapper mapper = session.getMapper(BlogMapper.class);
+          QueryRequest request = new QueryRequest();
+          // Get the records with `id` column equal to `1`
+          request.setQuery("id__eq__1");
+          List<Blog> results = mapper.findAll(request);
+          Assertions.assertEquals(1, results.size());
+        }
+      }
     }
-  }
-}
-```
+    ```
 
 ## Release Note
+
+## v1.7.5
+
+1. Add plugin property (`throw-if-field-not-found`) for user to decide whether throw exception if
+   query field not found.
+2. Add plugin property (`throw-if-operator-not-support`) for user to decide whether throw exception
+   if operator not supported.
 
 ## v1.7.2
 

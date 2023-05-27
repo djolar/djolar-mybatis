@@ -5,7 +5,11 @@
 <configuration>
   <plugins>
     <plugin interceptor="com.github.pagehelper.PageInterceptor"/>
-    <plugin interceptor="com.enixyu.djolar.mybatis.plugin.DjolarInterceptor"/>
+    <plugin interceptor="com.enixyu.djolar.mybatis.plugin.DjolarInterceptor">
+      <property name="dialect" value="mysql=com.enixyu.djolar.mybatis.dialect.PostgreSQLDialect"/>
+      <property name="throw-if-field-not-found" value="true"/>
+      <property name="throw-if-operator-not-support" value="true"/>
+    </plugin>
   </plugins>
 
   <environments default="development">

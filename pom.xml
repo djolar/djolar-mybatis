@@ -6,7 +6,7 @@
 
   <groupId>com.enixyu</groupId>
   <artifactId>djolar-mybatis</artifactId>
-  <version>1.7.4</version>
+  <version>1.7.5</version>
   <packaging>jar</packaging>
   <name>djolar-mybatis</name>
   <description>Djolar plugin for mybatis</description>
@@ -59,8 +59,8 @@
     </dependency>
 
     <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
       <version>8.0.32</version>
       <scope>test</scope>
     </dependency>

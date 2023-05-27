@@ -82,5 +82,12 @@ public class DjolarInterceptor implements Interceptor {
   @Override
   public void setProperties(Properties properties) {
     djolarAutoDialect.initAutoDialect(properties);
+    parser.setThrowIfFieldNotFound(
+      properties.getProperty(DjolarProperty.KEY_THROW_IF_FIELD_NOT_FOUND, DjolarProperty.VALUE_ON)
+        .equals(DjolarProperty.VALUE_ON));
+    parser.setThrowIfOperatorNotSupport(
+      properties.getProperty(DjolarProperty.KEY_THROW_IF_OPERATOR_NOT_SUPPORT,
+          DjolarProperty.VALUE_ON)
+        .equals(DjolarProperty.VALUE_ON));
   }
 }

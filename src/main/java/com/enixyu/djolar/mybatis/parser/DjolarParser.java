@@ -53,6 +53,8 @@ public class DjolarParser {
   private static final Map<String, QueryMapping> cachedQueryMapping;
   private static final Map<Class<?>, List<Field>> cachedClassFields;
   private final DjolarAutoDialect djolarAutoDialect;
+  private boolean throwIfFieldNotFound = true;
+  private boolean throwIfOperatorNotSupport = true;
 
   static {
     cachedQueryMapping = new ConcurrentHashMap<>();
@@ -61,6 +63,14 @@ public class DjolarParser {
 
   public DjolarParser(DjolarAutoDialect djolarAutoDialect) {
     this.djolarAutoDialect = djolarAutoDialect;
+  }
+
+  public void setThrowIfFieldNotFound(boolean throwIfFieldNotFound) {
+    this.throwIfFieldNotFound = throwIfFieldNotFound;
+  }
+
+  public void setThrowIfOperatorNotSupport(boolean throwIfOperatorNotSupport) {
+    this.throwIfOperatorNotSupport = throwIfOperatorNotSupport;
   }
 
   private final Pattern orderByPattern = Pattern.compile("^([-+])?(.*)$");
@@ -341,15 +351,24 @@ public class DjolarParser {
     String fieldName = groups[0];
     QueryMapping.Item field = queryMapping.get(fieldName);
     if (field == null) {
-      throw new DjolarParserException(String.format("'%s' not found in query mapping", fieldName));
+      if (throwIfFieldNotFound) {
+        throw new DjolarParserException(
+          String.format("'%s' not found in query mapping", fieldName));
+      } else {
+        return null;
+      }
     }
 
     // get operator
     String op = groups[1];
     Op operator = Op.fromString(op);
     if (operator == null) {
-      throw new DjolarParserException(
-        String.format("operator '%s' is not supported by djolar", op));
+      if (throwIfOperatorNotSupport) {
+        throw new DjolarParserException(
+          String.format("operator '%s' is not supported by djolar", op));
+      } else {
+        return null;
+      }
     }
 
     if (groups.length == 2) {

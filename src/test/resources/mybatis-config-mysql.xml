@@ -7,6 +7,8 @@
     <plugin interceptor="com.github.pagehelper.PageInterceptor"/>
     <plugin interceptor="com.enixyu.djolar.mybatis.plugin.DjolarInterceptor">
       <property name="dialect" value="mysql=com.enixyu.djolar.mybatis.dialect.MySQLDialect"/>
+      <property name="throw-if-field-not-found" value="true"/>
+      <property name="throw-if-operator-not-support" value="true"/>
     </plugin>
   </plugins>
 
