@@ -555,7 +555,7 @@ public class DjolarParser {
     if (parameter instanceof ParamMap) {
       ParamMap paramMap = (ParamMap) parameter;
       for (Object value : paramMap.values()) {
-        if (QueryRequest.class.isAssignableFrom(value.getClass())) {
+        if (value != null && QueryRequest.class.isAssignableFrom(value.getClass())) {
           queryRequest = (QueryRequest) value;
           break;
         }
@@ -563,7 +563,6 @@ public class DjolarParser {
       if (queryRequest == null) {
         return null;
       }
-
     } else if (QueryRequest.class.isAssignableFrom(parameter.getClass())) {
       queryRequest = (QueryRequest) parameter;
     } else {

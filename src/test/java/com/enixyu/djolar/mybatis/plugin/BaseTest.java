@@ -340,6 +340,9 @@ public abstract class BaseTest extends SessionAwareManager {
       queryRequest.setQuery("n__eq__abc1|id__eq__1");
       List<Blog> results = mapper.findUserBlogs(queryRequest, 1);
       Assertions.assertEquals(1, results.size());
+
+      results = mapper.findUserBlogs(null, 1);
+      Assertions.assertEquals(3, results.size());
     }
   }
 

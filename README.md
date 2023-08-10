@@ -132,6 +132,10 @@ support operators:
 
 ## Release Note
 
+## v1.8.1
+
+1. Fix interceptor crash when `QueryRequest` parameter is null issue.
+
 ## v1.8.0
 
 1. Support mapper method with multiple parameters including `QueryRequest` parameter.
