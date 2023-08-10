@@ -44,6 +44,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.sql.DataSource;
+import org.apache.ibatis.binding.MapperMethod.ParamMap;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ParameterMapping;
@@ -95,63 +96,48 @@ public class DjolarParser {
     );
   }
 
-  public ParseResult parse(MappedStatement ms, BoundSql boundSql, QueryRequest request)
+  public ParseResult parse(MappedStatement ms, BoundSql boundSql, Object parameter)
     throws DjolarParserException {
-    Matcher matcher = mapperIdPattern.matcher(ms.getId());
-    if (!matcher.find() || matcher.groupCount() != 2) {
-      // skip djolar interceptor
-      return new ParseResult(boundSql, request);
+    Object[] res = getMapperMethodAndQueryRequest(ms, parameter);
+    if (res == null) {
+      return null;
     }
-
-    String mapperClzName = matcher.group(1);
-    String mapperMethod = matcher.group(2);
-    Class<?> mapperClass;
-    try {
-      mapperClass = Class.forName(mapperClzName);
-    } catch (ClassNotFoundException e) {
-      // skip djolar interceptor
-      return new ParseResult(boundSql, request);
-    }
+    Class<?> mapperClass = (Class<?>) res[0];
+    Method mapperMethod = (Method) res[1];
+    QueryRequest queryRequest = (QueryRequest) res[2];
 
     // try to get filed mapping from method
     Mapping mappingAnnotation;
-    Method method;
-    try {
-      method = mapperClass.getMethod(mapperMethod, request.getClass());
-      mappingAnnotation = method.getAnnotation(Mapping.class);
-      if (mappingAnnotation == null) {
-        // get field mapping from class
-        mappingAnnotation = mapperClass.getAnnotation(Mapping.class);
-      }
-    } catch (NoSuchMethodException e) {
-      // skip djolar interceptor
-      return new ParseResult(boundSql, request);
+    mappingAnnotation = mapperMethod.getAnnotation(Mapping.class);
+    if (mappingAnnotation == null) {
+      // get field mapping from class
+      mappingAnnotation = mapperClass.getAnnotation(Mapping.class);
     }
 
     if (mappingAnnotation == null) {
       // skip djolar interceptor
-      return new ParseResult(boundSql, request);
+      return null;
     }
 
     // add extra where and sort
-    AdditionalWhere additionalWhere = method.getAnnotation(AdditionalWhere.class);
+    AdditionalWhere additionalWhere = mapperMethod.getAnnotation(AdditionalWhere.class);
     if (additionalWhere != null) {
-      String query = Optional.ofNullable(request.getQuery())
+      String query = Optional.ofNullable(queryRequest.getQuery())
         .map(String::trim)
         .map(q -> q.length() == 0 ? null : q)
         .map(q -> q + "|" + additionalWhere.where())
         .orElse(additionalWhere.where());
-      request.setQuery(query);
+      queryRequest.setQuery(query);
     }
 
-    AdditionalSort additionalSort = method.getAnnotation(AdditionalSort.class);
+    AdditionalSort additionalSort = mapperMethod.getAnnotation(AdditionalSort.class);
     if (additionalSort != null) {
-      String sort = Optional.ofNullable(request.getSort())
+      String sort = Optional.ofNullable(queryRequest.getSort())
         .map(String::trim)
         .map(s -> s.length() == 0 ? null : s)
         .map(s -> s + "," + additionalSort.sort())
         .orElse(additionalSort.sort());
-      request.setSort(sort);
+      queryRequest.setSort(sort);
     }
 
     ensureDialect(ms);
@@ -163,7 +149,7 @@ public class DjolarParser {
 
     // parse where clause
     List<WhereClause> whereClauseList = parseQueryFields(
-      request.getQuery(),
+      queryRequest.getQuery(),
       queryMapping,
       ms,
       parameterMappings,
@@ -171,7 +157,7 @@ public class DjolarParser {
       additionalParameters);
 
     // parse order by clause
-    List<String> orderByClauseList = parseOrderByFields(request.getSort(), queryMapping);
+    List<String> orderByClauseList = parseOrderByFields(queryRequest.getSort(), queryMapping);
 
     // build new bound sql with where clauses and order clauses
     String sql = boundSql.getSql();
@@ -204,6 +190,7 @@ public class DjolarParser {
    * @param boundSql bound sql
    * @return map
    */
+  @SuppressWarnings({"rawtypes", "unchecked"})
   private Map<String, Object> initParameterObject(BoundSql boundSql) {
     HashMap<String, Object> parameterObject = new HashMap<>();
     Object originParameterObject = boundSql.getParameterObject();
@@ -211,6 +198,10 @@ public class DjolarParser {
       return parameterObject;
     }
     Class<?> cls = originParameterObject.getClass();
+    if (HashMap.class.isAssignableFrom(cls)) {
+      HashMap map = (HashMap) originParameterObject;
+      parameterObject.putAll(map);
+    }
     List<Field> fields = cachedClassFields.computeIfAbsent(cls, (ignored) -> getAllFields(cls));
     boundSql.getParameterMappings().forEach((elem) -> fields.stream()
       .filter(f -> f.getName().equals(elem.getProperty()))
@@ -313,10 +304,12 @@ public class DjolarParser {
     if (query == null) {
       return null;
     }
+    int offset = parameterMappings.size();
     String[] tokens = query.split("\\|");
     return IntStream.range(0, tokens.length)
       .mapToObj(
-        i -> parseQueryItem(i, tokens[i], queryMapping, ms, parameterMappings, parameterObject,
+        i -> parseQueryItem(offset + i, tokens[i], queryMapping, ms, parameterMappings,
+          parameterObject,
           additionalParameters))
       .filter(Objects::nonNull)
       .collect(Collectors.toList());
@@ -524,5 +517,60 @@ public class DjolarParser {
       cls = cls.getSuperclass();
     }
     return fields;
+  }
+
+  @SuppressWarnings("rawtypes")
+  private Object[] getMapperMethodAndQueryRequest(MappedStatement ms, Object parameter) {
+    Matcher matcher = mapperIdPattern.matcher(ms.getId());
+    if (!matcher.find() || matcher.groupCount() != 2) {
+      // skip djolar interceptor
+      return null;
+    }
+
+    String mapperClzName = matcher.group(1);
+    String mapperMethodName = matcher.group(2);
+    Class<?> mapperClass;
+    try {
+      mapperClass = Class.forName(mapperClzName);
+    } catch (ClassNotFoundException e) {
+      // skip djolar interceptor
+      return null;
+    }
+
+    QueryRequest queryRequest = null;
+    Method mapperMethod = null;
+
+    int count = 0;
+    for (Method method : mapperClass.getMethods()) {
+      if (method.getName().equals(mapperMethodName)) {
+        mapperMethod = method;
+        count++;
+      }
+    }
+    if (count > 1 || mapperMethod == null) {
+      // Method overload is not allow in djolar, skip
+      return null;
+    }
+
+    if (parameter instanceof ParamMap) {
+      ParamMap paramMap = (ParamMap) parameter;
+      for (Object value : paramMap.values()) {
+        if (QueryRequest.class.isAssignableFrom(value.getClass())) {
+          queryRequest = (QueryRequest) value;
+          break;
+        }
+      }
+      if (queryRequest == null) {
+        return null;
+      }
+
+    } else if (QueryRequest.class.isAssignableFrom(parameter.getClass())) {
+      queryRequest = (QueryRequest) parameter;
+    } else {
+      // Parameter type not correct, skip this interceptor
+      return null;
+    }
+
+    return new Object[]{mapperClass, mapperMethod, queryRequest};
   }
 }

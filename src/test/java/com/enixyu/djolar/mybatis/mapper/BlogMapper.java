@@ -42,9 +42,10 @@ public interface BlogMapper {
   @AdditionalSort(sort = "-id")
   List<Blog> findMyBlogs(QueryRequest request);
 
-  @AdditionalWhere(where = "user_id__eq__1")
   @AdditionalSort(sort = "-id")
-  List<Blog> findMyBlogs(QueryRequest request, int i, Long j);
+  List<Blog> findUserBlogs(QueryRequest queryRequest, int userId);
+
+  List<Blog> findByUserIdAndName(@Param("userId") int userId, @Param("name") String name);
 
   Blog findById(int id);
 

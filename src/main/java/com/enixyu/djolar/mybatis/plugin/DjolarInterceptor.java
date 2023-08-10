@@ -21,8 +21,8 @@ package com.enixyu.djolar.mybatis.plugin;
 import com.enixyu.djolar.mybatis.dialect.DjolarAutoDialect;
 import com.enixyu.djolar.mybatis.parser.DjolarParser;
 import com.enixyu.djolar.mybatis.parser.ParseResult;
-import com.enixyu.djolar.mybatis.parser.QueryRequest;
 import java.util.Properties;
+import java.util.regex.Pattern;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
@@ -64,15 +64,15 @@ public class DjolarInterceptor implements Interceptor {
     ResultHandler<?> resultHandler = (ResultHandler<?>) args[3];
     BoundSql boundSql = args.length > 4 ? (BoundSql) args[5] : ms.getBoundSql(parameter);
 
-    QueryRequest queryRequest;
-    if (parameter != null && QueryRequest.class.isAssignableFrom(parameter.getClass())) {
-      queryRequest = (QueryRequest) parameter;
-    } else {
-      // Parameter type not correct, skip this interceptor
+    if (parameter == null) {
       return invocation.proceed();
     }
 
-    ParseResult result = parser.parse(ms, boundSql, queryRequest);
+    ParseResult result = parser.parse(ms, boundSql, parameter);
+    if (result == null) {
+      return invocation.proceed();
+    }
+
     CacheKey cacheKey = executor.createCacheKey(ms, result.getParameter(), rowBounds,
       result.getBoundSql());
     return executor.query(ms, result.getParameter(), rowBounds, resultHandler, cacheKey,

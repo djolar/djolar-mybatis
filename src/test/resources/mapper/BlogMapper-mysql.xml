@@ -12,7 +12,17 @@
   </select>
 
   <select id="findMyBlogs" resultType="com.enixyu.djolar.mybatis.domain.Blog">
-    SELECT * FROM `blog`
+    SELECT `blog`.* FROM `blog`
+  </select>
+
+  <select id="findUserBlogs" resultType="com.enixyu.djolar.mybatis.domain.Blog">
+    SELECT `blog`.* FROM `blog`
+    INNER JOIN `user` ON `blog`.`user_id` = `user`.`id` AND `user`.`id` = #{arg1}
+  </select>
+
+  <select id="findByUserIdAndName" resultType="com.enixyu.djolar.mybatis.domain.Blog">
+    SELECT * FROM blog
+    WHERE user_id = #{userId} AND name = #{name}
   </select>
 
   <select id="findById" resultType="com.enixyu.djolar.mybatis.domain.Blog">

@@ -132,6 +132,10 @@ support operators:
 
 ## Release Note
 
+## v1.8.0
+
+1. Support mapper method with multiple parameters including `QueryRequest` parameter.
+
 ## v1.7.5
 
 1. Add plugin property (`throw-if-field-not-found`) for user to decide whether throw exception if
