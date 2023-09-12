@@ -29,6 +29,7 @@ import com.enixyu.djolar.mybatis.parser.QueryRequest.QueryRequestBuilder;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import java.util.List;
+import java.util.Properties;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.apache.ibatis.session.SqlSession;
 import org.junit.jupiter.api.Assertions;
@@ -95,6 +96,12 @@ public abstract class BaseTest extends SessionAwareManager {
   void testEmptyIn() {
     Assertions.assertThrows(PersistenceException.class, () -> {
       try (SqlSession session = this.sessionFactory.openSession()) {
+        Properties props = new Properties();
+        props.setProperty(DjolarProperty.KEY_THROW_IF_EXPRESSION_INVALID, DjolarProperty.VALUE_ON);
+        session.getConfiguration().getInterceptors().stream()
+          .filter(i -> i.getClass() == DjolarInterceptor.class)
+          .findAny()
+          .ifPresent(i -> i.setProperties(props));
         BlogMapper mapper = session.getMapper(BlogMapper.class);
         QueryRequest request = new QueryRequest();
         request.setQuery("id__in__");
@@ -352,6 +359,17 @@ public abstract class BaseTest extends SessionAwareManager {
       BlogMapper mapper = session.getMapper(BlogMapper.class);
       List<Blog> results = mapper.findByUserIdAndName(1, "abc1");
       Assertions.assertEquals(1, results.size());
+    }
+  }
+
+  @Test
+  void testEmptyValueShouldIgnore() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest queryRequest = new QueryRequest();
+      queryRequest.setQuery("n__eq__");
+      List<Blog> results = mapper.findUserBlogs(queryRequest, 1);
+      Assertions.assertEquals(3, results.size());
     }
   }
 }

@@ -22,7 +22,6 @@ import com.enixyu.djolar.mybatis.dialect.DjolarAutoDialect;
 import com.enixyu.djolar.mybatis.parser.DjolarParser;
 import com.enixyu.djolar.mybatis.parser.ParseResult;
 import java.util.Properties;
-import java.util.regex.Pattern;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.BoundSql;
@@ -83,11 +82,13 @@ public class DjolarInterceptor implements Interceptor {
   public void setProperties(Properties properties) {
     djolarAutoDialect.initAutoDialect(properties);
     parser.setThrowIfFieldNotFound(
-      properties.getProperty(DjolarProperty.KEY_THROW_IF_FIELD_NOT_FOUND, DjolarProperty.VALUE_ON)
+      properties.getProperty(DjolarProperty.KEY_THROW_IF_FIELD_NOT_FOUND, DjolarProperty.VALUE_OFF)
         .equals(DjolarProperty.VALUE_ON));
     parser.setThrowIfOperatorNotSupport(
       properties.getProperty(DjolarProperty.KEY_THROW_IF_OPERATOR_NOT_SUPPORT,
-          DjolarProperty.VALUE_ON)
-        .equals(DjolarProperty.VALUE_ON));
+        DjolarProperty.VALUE_OFF).equals(DjolarProperty.VALUE_ON));
+    parser.setThrowIfExpressionInvalid(
+      properties.getProperty(DjolarProperty.KEY_THROW_IF_EXPRESSION_INVALID,
+        DjolarProperty.VALUE_OFF).equals(DjolarProperty.VALUE_ON));
   }
 }

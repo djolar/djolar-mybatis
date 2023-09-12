@@ -31,6 +31,8 @@ public class DjolarProperty {
   public static final String KEY_DIALECT = "dialect";
   public static final String KEY_THROW_IF_FIELD_NOT_FOUND = "throw-if-field-not-found";
   public static final String KEY_THROW_IF_OPERATOR_NOT_SUPPORT = "throw-if-operator-not-support";
+  public static final String KEY_THROW_IF_EXPRESSION_INVALID = "throw-if-expression-invalid";
 
   public static final String VALUE_ON = "true";
+  public static final String VALUE_OFF = "false";
 }

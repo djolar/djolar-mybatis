@@ -132,6 +132,13 @@ support operators:
 
 ## Release Note
 
+## v1.8.2
+
+1. Add a plugin parameter `throw-if-expression-invalid` to control whether throw exception if
+   expression is invalid.
+2. Set default value of all plugin parameters to `false` (Since expression is typically passed from
+   frontend, the backend does not know the expression in advance).
+
 ## v1.8.1
 
 1. Fix interceptor crash when `QueryRequest` parameter is null issue.

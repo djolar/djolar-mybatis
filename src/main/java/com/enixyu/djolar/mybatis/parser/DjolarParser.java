@@ -45,6 +45,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.sql.DataSource;
 import org.apache.ibatis.binding.MapperMethod.ParamMap;
+import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ParameterMapping;
@@ -54,8 +56,10 @@ public class DjolarParser {
   private static final Map<String, QueryMapping> cachedQueryMapping;
   private static final Map<Class<?>, List<Field>> cachedClassFields;
   private final DjolarAutoDialect djolarAutoDialect;
-  private boolean throwIfFieldNotFound = true;
-  private boolean throwIfOperatorNotSupport = true;
+  private boolean throwIfFieldNotFound = false;
+  private boolean throwIfOperatorNotSupport = false;
+  private boolean throwIfExpressionInvalid = false;
+  private final Log logger = LogFactory.getLog(DjolarParser.class);
 
   static {
     cachedQueryMapping = new ConcurrentHashMap<>();
@@ -64,6 +68,10 @@ public class DjolarParser {
 
   public DjolarParser(DjolarAutoDialect djolarAutoDialect) {
     this.djolarAutoDialect = djolarAutoDialect;
+  }
+
+  public void setThrowIfExpressionInvalid(boolean throwIfExpressionInvalid) {
+    this.throwIfExpressionInvalid = throwIfExpressionInvalid;
   }
 
   public void setThrowIfFieldNotFound(boolean throwIfFieldNotFound) {
@@ -88,8 +96,8 @@ public class DjolarParser {
       return;
     }
 
-    tableName = column.tableName().equals("") ? tableName : column.tableName();
-    String fieldName = column.columnName().equals("") ? field.getName() : column.columnName();
+    tableName = column.tableName().isEmpty() ? tableName : column.tableName();
+    String fieldName = column.columnName().isEmpty() ? field.getName() : column.columnName();
     queryMapping.set(
       column.queryAlias(),
       new QueryMapping.Item(tableName, fieldName, field.getType())
@@ -124,7 +132,7 @@ public class DjolarParser {
     if (additionalWhere != null) {
       String query = Optional.ofNullable(queryRequest.getQuery())
         .map(String::trim)
-        .map(q -> q.length() == 0 ? null : q)
+        .map(q -> q.isEmpty() ? null : q)
         .map(q -> q + "|" + additionalWhere.where())
         .orElse(additionalWhere.where());
       queryRequest.setQuery(query);
@@ -134,7 +142,7 @@ public class DjolarParser {
     if (additionalSort != null) {
       String sort = Optional.ofNullable(queryRequest.getSort())
         .map(String::trim)
-        .map(s -> s.length() == 0 ? null : s)
+        .map(s -> s.isEmpty() ? null : s)
         .map(s -> s + "," + additionalSort.sort())
         .orElse(additionalSort.sort());
       queryRequest.setSort(sort);
@@ -162,7 +170,7 @@ public class DjolarParser {
     // build new bound sql with where clauses and order clauses
     String sql = boundSql.getSql();
     StringBuilder sqlbuilder = new StringBuilder(sql);
-    if (whereClauseList != null && whereClauseList.size() > 0) {
+    if (whereClauseList != null && !whereClauseList.isEmpty()) {
       sqlbuilder.append(" WHERE ");
       String where = whereClauseList.stream().map(dialect::buildWhere)
         .collect(Collectors.joining(" AND "));
@@ -337,6 +345,7 @@ public class DjolarParser {
     Map<String, Object> additionalParameters) throws DjolarParserException {
     String[] groups = item.split("__");
     if (groups.length != 2 && groups.length != 3) {
+      logger.warn(String.format("invalid expression: '%s'", item));
       return null;
     }
 
@@ -344,10 +353,11 @@ public class DjolarParser {
     String fieldName = groups[0];
     QueryMapping.Item field = queryMapping.get(fieldName);
     if (field == null) {
+      String message = String.format("'%s' not found in query mapping", fieldName);
       if (throwIfFieldNotFound) {
-        throw new DjolarParserException(
-          String.format("'%s' not found in query mapping", fieldName));
+        throw new DjolarParserException(message);
       } else {
+        logger.warn(message);
         return null;
       }
     }
@@ -356,12 +366,23 @@ public class DjolarParser {
     String op = groups[1];
     Op operator = Op.fromString(op);
     if (operator == null) {
+      String message =String.format("operator '%s' is not supported by djolar", op);
       if (throwIfOperatorNotSupport) {
-        throw new DjolarParserException(
-          String.format("operator '%s' is not supported by djolar", op));
+        throw new DjolarParserException(message);
       } else {
+        logger.warn(message);
         return null;
       }
+    }
+
+    if (groups.length - 2 != operator.getNumOfOperands()) {
+      // expression not match op requested
+      String message = String.format("invalid expression: '%s'", item);
+      if (throwIfExpressionInvalid) {
+        throw new DjolarParserException(message);
+      }
+      logger.warn(message);
+      return null;
     }
 
     if (groups.length == 2) {
@@ -477,7 +498,7 @@ public class DjolarParser {
       return null;
     }
     orderBy = orderBy.trim();
-    if (orderBy.length() == 0) {
+    if (orderBy.isEmpty()) {
       return null;
     }
 
