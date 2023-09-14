@@ -132,6 +132,13 @@ support operators:
 
 ## Release Note
 
+## v1.8.3
+
+1. Return a false where clause (`1 = 0`) for *invalid operator*, *invalid expression*, *mapping
+   field not found* if plugin parameters are set to `false`.
+2. Fix sort clause without using the `tableName` issue.
+3. Add more test cases.
+
 ## v1.8.2
 
 1. Add a plugin parameter `throw-if-expression-invalid` to control whether throw exception if

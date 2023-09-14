@@ -22,27 +22,17 @@
  */
 package com.enixyu.djolar.mybatis.parser;
 
-public class WhereClause {
-    private String tableName;
-    private String columnName;
+public class WhereClause extends Clause {
+
     private Op operator;
     private Object value;
     private Class<?> valueType;
 
-    public WhereClause(String tableName, String columnName, Op operator, Object value, Class<?> valueType) {
-        this.tableName = tableName;
-        this.columnName = columnName;
+    public WhereClause(String tableName, String columnName, Op operator, Object value, Class<?> valueType, boolean needEscape) {
+        super(tableName, columnName, needEscape);
         this.operator = operator;
         this.value = value;
         this.valueType = valueType;
-    }
-
-    public String getTableName() {
-        return tableName;
-    }
-
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
     }
 
     public Class<?> getValueType() {
@@ -51,14 +41,6 @@ public class WhereClause {
 
     public void setValueType(Class<?> valueType) {
         this.valueType = valueType;
-    }
-
-    public String getColumnName() {
-        return columnName;
-    }
-
-    public void setColumnName(String columnName) {
-        this.columnName = columnName;
     }
 
     public Op getOperator() {
@@ -80,10 +62,12 @@ public class WhereClause {
     @Override
     public String toString() {
         return "WhereClause{" +
-                "columnName='" + columnName + '\'' +
-                ", operator=" + operator +
-                ", value=" + value +
-                ", valueType=" + valueType +
-                '}';
+          "tableName='" + getTableName() + '\'' +
+          ", columnName='" + getColumnName() + '\'' +
+          ", operator=" + operator +
+          ", value=" + value +
+          ", valueType=" + valueType +
+          ", needEscape=" + isNeedEscape() +
+          '}';
     }
 }

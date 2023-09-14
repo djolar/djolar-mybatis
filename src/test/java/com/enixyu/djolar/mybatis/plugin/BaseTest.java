@@ -96,12 +96,8 @@ public abstract class BaseTest extends SessionAwareManager {
   void testEmptyIn() {
     Assertions.assertThrows(PersistenceException.class, () -> {
       try (SqlSession session = this.sessionFactory.openSession()) {
-        Properties props = new Properties();
-        props.setProperty(DjolarProperty.KEY_THROW_IF_EXPRESSION_INVALID, DjolarProperty.VALUE_ON);
-        session.getConfiguration().getInterceptors().stream()
-          .filter(i -> i.getClass() == DjolarInterceptor.class)
-          .findAny()
-          .ifPresent(i -> i.setProperties(props));
+        setDjolarParameter(session, DjolarProperty.KEY_THROW_IF_EXPRESSION_INVALID,
+          DjolarProperty.VALUE_ON);
         BlogMapper mapper = session.getMapper(BlogMapper.class);
         QueryRequest request = new QueryRequest();
         request.setQuery("id__in__");
@@ -363,13 +359,92 @@ public abstract class BaseTest extends SessionAwareManager {
   }
 
   @Test
-  void testEmptyValueShouldIgnore() {
+  void testEmptyValueShouldReturnNoResult() {
     try (SqlSession session = this.sessionFactory.openSession()) {
+      setDjolarParameter(session, DjolarProperty.KEY_THROW_IF_EXPRESSION_INVALID,
+        DjolarProperty.VALUE_OFF);
       BlogMapper mapper = session.getMapper(BlogMapper.class);
       QueryRequest queryRequest = new QueryRequest();
       queryRequest.setQuery("n__eq__");
       List<Blog> results = mapper.findUserBlogs(queryRequest, 1);
-      Assertions.assertEquals(3, results.size());
+      Assertions.assertEquals(0, results.size());
     }
+  }
+
+  @Test
+  void testNoSuchFieldShouldReturnNoResult() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      setDjolarParameter(session, DjolarProperty.KEY_THROW_IF_FIELD_NOT_FOUND,
+        DjolarProperty.VALUE_OFF);
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest queryRequest = new QueryRequest();
+      queryRequest.setQuery("no_such_field__eq__1");
+      List<Blog> results = mapper.findUserBlogs(queryRequest, 1);
+      Assertions.assertEquals(0, results.size());
+    }
+  }
+
+  @Test
+  void testNoSuchFieldShouldThrow() {
+    Assertions.assertThrows(PersistenceException.class, () -> {
+      try (SqlSession session = this.sessionFactory.openSession()) {
+        setDjolarParameter(session, DjolarProperty.KEY_THROW_IF_FIELD_NOT_FOUND,
+          DjolarProperty.VALUE_ON);
+        BlogMapper mapper = session.getMapper(BlogMapper.class);
+        QueryRequest queryRequest = new QueryRequest();
+        queryRequest.setQuery("no_such_field__eq__1");
+        List<Blog> results = mapper.findUserBlogs(queryRequest, 1);
+        Assertions.assertEquals(0, results.size());
+      }
+    });
+  }
+
+  @Test
+  void testInvalidOperatorShouldReturnNoResult() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      setDjolarParameter(session, DjolarProperty.KEY_THROW_IF_OPERATOR_NOT_SUPPORT,
+        DjolarProperty.VALUE_OFF);
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest queryRequest = new QueryRequest();
+      queryRequest.setQuery("user_id__xy__1");
+      List<Blog> results = mapper.findUserBlogs(queryRequest, 1);
+      Assertions.assertEquals(0, results.size());
+    }
+  }
+
+  @Test
+  void testInvalidOperatorShouldThrow() {
+    Assertions.assertThrows(PersistenceException.class, () -> {
+      try (SqlSession session = this.sessionFactory.openSession()) {
+        setDjolarParameter(session, DjolarProperty.KEY_THROW_IF_OPERATOR_NOT_SUPPORT,
+          DjolarProperty.VALUE_ON);
+        BlogMapper mapper = session.getMapper(BlogMapper.class);
+        QueryRequest queryRequest = new QueryRequest();
+        queryRequest.setQuery("user_id__xy__1");
+        List<Blog> results = mapper.findUserBlogs(queryRequest, 1);
+        Assertions.assertEquals(0, results.size());
+      }
+    });
+  }
+
+  @Test
+  void testSortOK() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest queryRequest = new QueryRequest();
+      queryRequest.setSort("-user_id");
+      List<Blog> results = mapper.findUserBlogs(queryRequest, 1);
+      Assertions.assertEquals(3, results.size());
+      Assertions.assertEquals("abc3", results.get(0).getName());
+    }
+  }
+
+  private void setDjolarParameter(SqlSession session, String key, String value) {
+    Properties props = new Properties();
+    props.setProperty(key, value);
+    session.getConfiguration().getInterceptors().stream()
+      .filter(i -> i.getClass() == DjolarInterceptor.class)
+      .findAny()
+      .ifPresent(i -> i.setProperties(props));
   }
 }

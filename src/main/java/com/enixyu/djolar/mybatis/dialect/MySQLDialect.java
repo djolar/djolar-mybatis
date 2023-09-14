@@ -18,26 +18,22 @@
  */
 package com.enixyu.djolar.mybatis.dialect;
 
+import com.enixyu.djolar.mybatis.parser.OrderClause;
 import com.enixyu.djolar.mybatis.parser.WhereClause;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MySQLDialect implements Dialect {
+public class MySQLDialect extends BaseDialect {
 
   @Override
   public String buildWhere(WhereClause whereClause) {
     switch (whereClause.getOperator()) {
       case IsNull:
       case IsNotNull:
-        return String.format("`%s`.`%s` %s",
-          whereClause.getTableName(),
-          whereClause.getColumnName(),
-          whereClause.getOperator().getSymbol()
-        );
+        return String.format("%s %s", getColumnName(whereClause),
+          whereClause.getOperator().getSymbol());
       case IgnoreCaseContain:
-        return String.format("LOWER(`%s`.`%s`) %s LOWER(?)",
-          whereClause.getTableName(),
-          whereClause.getColumnName(),
+        return String.format("LOWER(%s) %s LOWER(?)", getColumnName(whereClause),
           whereClause.getOperator().getSymbol()
         );
       case In:
@@ -50,19 +46,27 @@ public class MySQLDialect implements Dialect {
           .stream()
           .map(ignore -> "?")
           .collect(Collectors.joining(","));
-        return String.format("`%s`.`%s` %s (%s)",
-          whereClause.getTableName(),
-          whereClause.getColumnName(),
+        return String.format("%s %s (%s)", getColumnName(whereClause),
           whereClause.getOperator().getSymbol(),
           mark
         );
       }
       default:
-        return String.format("`%s`.`%s` %s ?",
-          whereClause.getTableName(),
-          whereClause.getColumnName(),
+        return String.format("%s %s ?", getColumnName(whereClause),
           whereClause.getOperator().getSymbol()
         );
     }
+  }
+
+  @Override
+  public String buildOrderBy(OrderClause orderClause) {
+    return String.format("%s %s", getColumnName(orderClause),
+      orderClause.isAscending() ? "ASC" : "DESC"
+    );
+  }
+
+  @Override
+  protected String getFieldQuoteSymbol() {
+    return "`";
   }
 }

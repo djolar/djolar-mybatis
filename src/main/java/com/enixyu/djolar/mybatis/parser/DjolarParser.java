@@ -36,8 +36,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -165,7 +165,7 @@ public class DjolarParser {
       additionalParameters);
 
     // parse order by clause
-    List<String> orderByClauseList = parseOrderByFields(queryRequest.getSort(), queryMapping);
+    List<OrderClause> orderByClauseList = parseOrderByFields(queryRequest.getSort(), queryMapping);
 
     // build new bound sql with where clauses and order clauses
     String sql = boundSql.getSql();
@@ -178,7 +178,9 @@ public class DjolarParser {
     }
     if (orderByClauseList != null && orderByClauseList.iterator().hasNext()) {
       sqlbuilder.append(" ORDER BY ");
-      sqlbuilder.append(String.join(",", orderByClauseList));
+      String clause = orderByClauseList.stream().map(dialect::buildOrderBy)
+        .collect(Collectors.joining(", "));
+      sqlbuilder.append(clause);
     }
     BoundSql newBoundSql = new BoundSql(ms.getConfiguration(), sqlbuilder.toString(),
       parameterMappings, parameterObject);
@@ -319,7 +321,6 @@ public class DjolarParser {
         i -> parseQueryItem(offset + i, tokens[i], queryMapping, ms, parameterMappings,
           parameterObject,
           additionalParameters))
-      .filter(Objects::nonNull)
       .collect(Collectors.toList());
   }
 
@@ -346,7 +347,7 @@ public class DjolarParser {
     String[] groups = item.split("__");
     if (groups.length != 2 && groups.length != 3) {
       logger.warn(String.format("invalid expression: '%s'", item));
-      return null;
+      return buildFalseWhereClause(ms, parameterMappings, parameterObject);
     }
 
     // get field
@@ -357,8 +358,9 @@ public class DjolarParser {
       if (throwIfFieldNotFound) {
         throw new DjolarParserException(message);
       } else {
+        // return a false clause
         logger.warn(message);
-        return null;
+        return buildFalseWhereClause(ms, parameterMappings, parameterObject);
       }
     }
 
@@ -366,12 +368,12 @@ public class DjolarParser {
     String op = groups[1];
     Op operator = Op.fromString(op);
     if (operator == null) {
-      String message =String.format("operator '%s' is not supported by djolar", op);
+      String message = String.format("operator '%s' is not supported by djolar", op);
       if (throwIfOperatorNotSupport) {
         throw new DjolarParserException(message);
       } else {
         logger.warn(message);
-        return null;
+        return buildFalseWhereClause(ms, parameterMappings, parameterObject);
       }
     }
 
@@ -382,13 +384,13 @@ public class DjolarParser {
         throw new DjolarParserException(message);
       }
       logger.warn(message);
-      return null;
+      return buildFalseWhereClause(ms, parameterMappings, parameterObject);
     }
 
     if (groups.length == 2) {
       // clause without value case
       return new WhereClause(field.getTableName(), field.getFieldName(), operator, null,
-        field.getFieldType());
+        field.getFieldType(), true);
     }
 
     // parse value
@@ -430,7 +432,7 @@ public class DjolarParser {
     }
 
     return new WhereClause(field.getTableName(), field.getFieldName(), operator, parsedValue,
-      fieldType);
+      fieldType, true);
   }
 
   /**
@@ -493,7 +495,7 @@ public class DjolarParser {
    * @param orderBy order by clause
    * @return order by statements
    */
-  private List<String> parseOrderByFields(String orderBy, QueryMapping queryMapping) {
+  private List<OrderClause> parseOrderByFields(String orderBy, QueryMapping queryMapping) {
     if (orderBy == null) {
       return null;
     }
@@ -517,9 +519,8 @@ public class DjolarParser {
         throw new DjolarParserException(
           String.format("sort field '%s' not found in query mapping", fieldName));
       }
-      return ("-".equals(ascDesc))
-        ? field.getFieldName() + " DESC"
-        : field.getFieldName() + " ASC";
+      return new OrderClause(field.getTableName(), field.getFieldName(), !"-".equals(ascDesc),
+        true);
     }).collect(Collectors.toList());
   }
 
@@ -592,5 +593,18 @@ public class DjolarParser {
     }
 
     return new Object[]{mapperClass, mapperMethod, queryRequest};
+  }
+
+  private WhereClause buildFalseWhereClause(MappedStatement ms,
+    List<ParameterMapping> parameterMappings, Map<String, Object> parameterObject) {
+    int value = 0;
+    String property = UUID.randomUUID().toString();
+    ParameterMapping parameterMapping = new ParameterMapping.Builder(
+      ms.getConfiguration(),
+      property,
+      int.class).build();
+    parameterMappings.add(parameterMapping);
+    parameterObject.put(property, value);
+    return new WhereClause(null, "1", Op.Equal, value, int.class, false);
   }
 }

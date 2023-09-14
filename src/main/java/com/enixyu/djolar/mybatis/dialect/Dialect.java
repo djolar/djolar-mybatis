@@ -21,9 +21,12 @@
  */
 package com.enixyu.djolar.mybatis.dialect;
 
+import com.enixyu.djolar.mybatis.parser.OrderClause;
 import com.enixyu.djolar.mybatis.parser.WhereClause;
 
 public interface Dialect {
 
   String buildWhere(WhereClause whereClause);
+
+  String buildOrderBy(OrderClause orderClause);
 }
