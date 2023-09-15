@@ -6,7 +6,7 @@
 
   <groupId>com.enixyu</groupId>
   <artifactId>djolar-mybatis</artifactId>
-  <version>1.8.3</version>
+  <version>1.8.4</version>
   <packaging>jar</packaging>
   <name>djolar-mybatis</name>
   <description>Djolar plugin for mybatis</description>

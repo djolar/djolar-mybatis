@@ -311,7 +311,7 @@ public class DjolarParser {
     List<ParameterMapping> parameterMappings,
     Map<String, Object> parameterObject,
     Map<String, Object> additionalParameters) throws DjolarParserException {
-    if (query == null) {
+    if (query == null || query.trim().isEmpty()) {
       return null;
     }
     int offset = parameterMappings.size();
@@ -496,21 +496,16 @@ public class DjolarParser {
    * @return order by statements
    */
   private List<OrderClause> parseOrderByFields(String orderBy, QueryMapping queryMapping) {
-    if (orderBy == null) {
-      return null;
-    }
-    orderBy = orderBy.trim();
-    if (orderBy.isEmpty()) {
+    if (orderBy == null || orderBy.trim().isEmpty()) {
       return null;
     }
 
     String[] tokens = orderBy.split(",");
-    String finalOrderBy = orderBy;
     return Arrays.stream(tokens).map(part -> {
       Matcher matcher = orderByPattern.matcher(part);
       if (!matcher.find()) {
         throw new DjolarParserException(
-          String.format("invalid order by clause: '%s'", finalOrderBy));
+          String.format("invalid order by clause: '%s'", orderBy));
       }
       String ascDesc = matcher.group(1);
       String fieldName = matcher.group(2);

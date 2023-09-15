@@ -132,6 +132,10 @@ support operators:
 
 ## Release Note
 
+## v1.8.4
+
+1. Ignore query with empty string, without throwing expression invalid exception.
+
 ## v1.8.3
 
 1. Return a false where clause (`1 = 0`) for *invalid operator*, *invalid expression*, *mapping

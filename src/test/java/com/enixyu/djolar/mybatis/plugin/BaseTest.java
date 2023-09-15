@@ -428,6 +428,21 @@ public abstract class BaseTest extends SessionAwareManager {
   }
 
   @Test
+  void testEmptyQueryShouldOK() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest queryRequest = new QueryRequest();
+      queryRequest.setQuery("");
+      List<Blog> results = mapper.findUserBlogs(queryRequest, 1);
+      Assertions.assertEquals(3, results.size());
+
+      queryRequest.setQuery("   ");
+      results = mapper.findUserBlogs(queryRequest, 1);
+      Assertions.assertEquals(3, results.size());
+    }
+  }
+
+  @Test
   void testSortOK() {
     try (SqlSession session = this.sessionFactory.openSession()) {
       BlogMapper mapper = session.getMapper(BlogMapper.class);
@@ -436,6 +451,21 @@ public abstract class BaseTest extends SessionAwareManager {
       List<Blog> results = mapper.findUserBlogs(queryRequest, 1);
       Assertions.assertEquals(3, results.size());
       Assertions.assertEquals("abc3", results.get(0).getName());
+    }
+  }
+
+  @Test
+  void testSortWithEmptyStringShouldOK() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest queryRequest = new QueryRequest();
+      queryRequest.setSort("");
+      List<Blog> results = mapper.findUserBlogs(queryRequest, 1);
+      Assertions.assertEquals(3, results.size());
+
+      queryRequest.setSort("  ");
+      results = mapper.findUserBlogs(queryRequest, 1);
+      Assertions.assertEquals(3, results.size());
     }
   }
 
