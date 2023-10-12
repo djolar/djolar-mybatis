@@ -404,7 +404,16 @@ public class DjolarParser {
       parsedValue = new ArrayList<>(tokens.length);
       for (int i = 0; i < tokens.length; i++) {
         String token = tokens[i];
-        Object itemParsedValue = parseValue(field, operator, token);
+        Object itemParsedValue;
+        try {
+          itemParsedValue = parseValue(field, operator, token);
+        } catch (Exception e) {
+          if (throwIfExpressionInvalid) {
+            throw e;
+          }
+          logger.warn(String.format("failed to parse value: %s", e.getMessage()));
+          return buildFalseWhereClause(ms, parameterMappings, parameterObject);
+        }
         ((List<Object>) parsedValue).add(itemParsedValue);
         String property = String.format("%s_%s_%d_%d", field.getTableName(), field.getFieldName(),
           index, i);
@@ -420,7 +429,15 @@ public class DjolarParser {
       parameterObject.put(property, parsedValue);
     } else {
       // Single value case
-      parsedValue = parseValue(field, operator, value);
+      try {
+        parsedValue = parseValue(field, operator, value);
+      } catch (Exception e) {
+        if (throwIfExpressionInvalid) {
+          throw e;
+        }
+        logger.warn(String.format("failed to parse value: %s", e.getMessage()));
+        return buildFalseWhereClause(ms, parameterMappings, parameterObject);
+      }
       String property = String.format("%s_%s_%d", field.getTableName(), field.getFieldName(),
         index);
       ParameterMapping parameterMapping = new ParameterMapping.Builder(
@@ -443,7 +460,8 @@ public class DjolarParser {
    * @param value    source string value
    * @return converted target value for given field type
    */
-  private Object parseValue(QueryMapping.Item field, Op operator, String value) {
+  private Object parseValue(QueryMapping.Item field, Op operator, String value)
+    throws NumberFormatException, DjolarParserException {
     if (field.getFieldType().isPrimitive()) {
       switch (field.getFieldType().getName()) {
         case "int":

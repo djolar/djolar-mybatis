@@ -132,6 +132,11 @@ support operators:
 
 ## Release Note
 
+## v1.8.5
+
+1. Handle invalid expression value when parsing expression, throw exception if
+   flag `KEY_THROW_IF_EXPRESSION_INVALID` is on.
+
 ## v1.8.4
 
 1. Ignore query with empty string, without throwing expression invalid exception.

@@ -469,6 +469,34 @@ public abstract class BaseTest extends SessionAwareManager {
     }
   }
 
+  @Test
+  void testMuteWhenExpressionValueInvalid() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      setDjolarParameter(session, DjolarProperty.KEY_THROW_IF_EXPRESSION_INVALID,
+        DjolarProperty.VALUE_OFF);
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest queryRequest = new QueryRequest();
+      queryRequest.setQuery("user_id__eq__ABC");
+      List<Blog> results = mapper.findUserBlogs(queryRequest, 1);
+      Assertions.assertEquals(0, results.size());
+    }
+  }
+
+  @Test
+  void testInvalidExpressionValueShouldThrow() {
+    Assertions.assertThrows(PersistenceException.class, () -> {
+      try (SqlSession session = this.sessionFactory.openSession()) {
+        setDjolarParameter(session, DjolarProperty.KEY_THROW_IF_EXPRESSION_INVALID,
+          DjolarProperty.VALUE_ON);
+        BlogMapper mapper = session.getMapper(BlogMapper.class);
+        QueryRequest queryRequest = new QueryRequest();
+        queryRequest.setQuery("user_id__eq__ABC");
+        List<Blog> results = mapper.findUserBlogs(queryRequest, 1);
+        Assertions.assertEquals(0, results.size());
+      }
+    });
+  }
+
   private void setDjolarParameter(SqlSession session, String key, String value) {
     Properties props = new Properties();
     props.setProperty(key, value);
