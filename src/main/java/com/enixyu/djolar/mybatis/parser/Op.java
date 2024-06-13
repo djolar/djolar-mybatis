@@ -26,20 +26,23 @@
 package com.enixyu.djolar.mybatis.parser;
 
 public enum Op {
-  Equal("eq", "=", (byte) 1),
-  NotEqual("ne", "<>", (byte) 1),
-  LessThan("lt", "<", (byte) 1),
-  LessThanOrEqual("le", "<=", (byte) 1),
-  GreaterThan("gt", ">", (byte) 1),
-  GreaterThanOrEqual("ge", ">=", (byte) 1),
-  Contain("co", "LIKE", (byte) 1),
-  StartsWith("sw", "LIKE", (byte) 1),
-  EndsWith("ew", "LIKE", (byte) 1),
-  IgnoreCaseContain("ico", "LIKE", (byte) 1),
-  In("in", "IN", (byte) 1),
-  NotIn("ni", "NOT IN", (byte) 1),
-  IsNull("nu", "IS NULL", (byte) 0),
-  IsNotNull("nn", "IS NOT NULL", (byte) 0);
+  EQUAL("eq", "=", (byte) 1),
+  NOT_EQUAL("ne", "<>", (byte) 1),
+  LESS_THAN("lt", "<", (byte) 1),
+  LESS_THAN_OR_EQUAL("le", "<=", (byte) 1),
+  GREATER_THAN("gt", ">", (byte) 1),
+  GREATER_THAN_OR_EQUAL("ge", ">=", (byte) 1),
+  CONTAIN("co", "LIKE", (byte) 1),
+  STARTS_WITH("sw", "LIKE", (byte) 1),
+  ENDS_WITH("ew", "LIKE", (byte) 1),
+  IGNORE_CASE_CONTAIN("ico", "LIKE", (byte) 1),
+  IN("in", "IN", (byte) 1),
+  NOT_IN("ni", "NOT IN", (byte) 1),
+  IS_NULL("nu", "IS NULL", (byte) 0),
+  IS_NOT_NULL("nn", "IS NOT NULL", (byte) 0),
+  JSON_OVERLAPS("jo", "", (byte) 1),
+  JSON_CONTAINS("jc", "", (byte) 1),
+  ;
 
   private final String value;
   private final String symbol;

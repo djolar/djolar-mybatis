@@ -28,10 +28,14 @@ import com.enixyu.djolar.mybatis.annotation.Table;
 @Table("blog")
 public class Blog {
     private int id;
+
     @Column(queryAlias = "n")
     private String name;
+
     @Column(queryAlias = "user_id", columnName = "user_id")
     private int userID;
+
+    private String tags;
 
     public int getUserID() {
         return userID;
@@ -55,5 +59,13 @@ public class Blog {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
     }
 }

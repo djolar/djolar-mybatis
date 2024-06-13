@@ -226,16 +226,16 @@ public abstract class BaseTest extends SessionAwareManager {
   @Test
   void testQueryRequestBuilder() {
     QueryRequest queryRequest = QueryRequestBuilder.newBuilder()
-      .addQuery("col1", Op.Equal, "1")
-      .addQuery("col2", Op.LessThan, "2")
-      .addQuery("col3", Op.LessThanOrEqual, "3")
-      .addQuery("col4", Op.GreaterThan, "4")
-      .addQuery("col5", Op.GreaterThanOrEqual, "5")
-      .addQuery("col6", Op.Contain, "6")
-      .addQuery("col7", Op.StartsWith, "7")
-      .addQuery("col8", Op.EndsWith, "8")
-      .addQuery("col9", Op.IsNull, null)
-      .addQuery("col10", Op.IsNotNull, null)
+      .addQuery("col1", Op.EQUAL, "1")
+      .addQuery("col2", Op.LESS_THAN, "2")
+      .addQuery("col3", Op.LESS_THAN_OR_EQUAL, "3")
+      .addQuery("col4", Op.GREATER_THAN, "4")
+      .addQuery("col5", Op.GREATER_THAN_OR_EQUAL, "5")
+      .addQuery("col6", Op.CONTAIN, "6")
+      .addQuery("col7", Op.STARTS_WITH, "7")
+      .addQuery("col8", Op.ENDS_WITH, "8")
+      .addQuery("col9", Op.IS_NULL, null)
+      .addQuery("col10", Op.IS_NOT_NULL, null)
       .build();
 
     Assertions.assertEquals(
@@ -497,7 +497,32 @@ public abstract class BaseTest extends SessionAwareManager {
     });
   }
 
-  private void setDjolarParameter(SqlSession session, String key, String value) {
+  @Test
+  void testJsonContainsShouldSuccess() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      setDjolarParameter(session, DjolarProperty.KEY_THROW_IF_EXPRESSION_INVALID,
+        DjolarProperty.VALUE_OFF);
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest queryRequest = new QueryRequest();
+      queryRequest.setQuery("tags__jc__1,2,3");
+      List<Blog> results = mapper.findAll(queryRequest);
+      Assertions.assertEquals(2, results.size());
+
+      queryRequest.setQuery("tags__jc__1");
+      results = mapper.findAll(queryRequest);
+      Assertions.assertEquals(8, results.size());
+
+      queryRequest.setQuery("tags__jc__1,4");
+      results = mapper.findAll(queryRequest);
+      Assertions.assertEquals(0, results.size());
+
+      queryRequest.setQuery("tags__jc__4");
+      results = mapper.findAll(queryRequest);
+      Assertions.assertEquals(0, results.size());
+    }
+  }
+
+  protected void setDjolarParameter(SqlSession session, String key, String value) {
     Properties props = new Properties();
     props.setProperty(key, value);
     session.getConfiguration().getInterceptors().stream()

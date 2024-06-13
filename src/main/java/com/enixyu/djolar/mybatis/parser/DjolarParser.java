@@ -336,7 +336,6 @@ public class DjolarParser {
    * @param additionalParameters additional parameters
    * @return WhereClause
    */
-  @SuppressWarnings("unchecked")
   private WhereClause parseQueryItem(int index,
     String item,
     QueryMapping queryMapping,
@@ -396,114 +395,18 @@ public class DjolarParser {
     // parse value
     String value = groups[2];
     Class<?> fieldType = field.getFieldType();
-    Object parsedValue;
-    if (operator == Op.In || operator == Op.NotIn) {
-      // For IN or NOT IN operator
-      // We need to split the value into tokens and parse to target field type
-      String[] tokens = value.split(",");
-      parsedValue = new ArrayList<>(tokens.length);
-      for (int i = 0; i < tokens.length; i++) {
-        String token = tokens[i];
-        Object itemParsedValue;
-        try {
-          itemParsedValue = parseValue(field, operator, token);
-        } catch (Exception e) {
-          if (throwIfExpressionInvalid) {
-            throw e;
-          }
-          logger.warn(String.format("failed to parse value: %s", e.getMessage()));
-          return buildFalseWhereClause(ms, parameterMappings, parameterObject);
-        }
-        ((List<Object>) parsedValue).add(itemParsedValue);
-        String property = String.format("%s_%s_%d_%d", field.getTableName(), field.getFieldName(),
-          index, i);
-        ParameterMapping parameterMapping = new ParameterMapping.Builder(
-          ms.getConfiguration(),
-          property,
-          fieldType).build();
-        parameterMappings.add(parameterMapping);
-        additionalParameters.put(property, itemParsedValue);
-      }
-      String property = String.format("%s_%s_%d", field.getTableName(), field.getFieldName(),
-        index);
-      parameterObject.put(property, parsedValue);
-    } else {
-      // Single value case
-      try {
-        parsedValue = parseValue(field, operator, value);
-      } catch (Exception e) {
-        if (throwIfExpressionInvalid) {
-          throw e;
-        }
-        logger.warn(String.format("failed to parse value: %s", e.getMessage()));
-        return buildFalseWhereClause(ms, parameterMappings, parameterObject);
-      }
-      String property = String.format("%s_%s_%d", field.getTableName(), field.getFieldName(),
-        index);
-      ParameterMapping parameterMapping = new ParameterMapping.Builder(
-        ms.getConfiguration(),
-        property,
-        fieldType).build();
-      parameterMappings.add(parameterMapping);
-      parameterObject.put(property, parsedValue);
-    }
 
-    return new WhereClause(field.getTableName(), field.getFieldName(), operator, parsedValue,
-      fieldType, true);
-  }
-
-  /**
-   * Convert string value into target field type
-   *
-   * @param field    query mapping field
-   * @param operator djolar operator
-   * @param value    source string value
-   * @return converted target value for given field type
-   */
-  private Object parseValue(QueryMapping.Item field, Op operator, String value)
-    throws NumberFormatException, DjolarParserException {
-    if (field.getFieldType().isPrimitive()) {
-      switch (field.getFieldType().getName()) {
-        case "int":
-          return Integer.parseInt(value);
-        case "boolean":
-          return Boolean.parseBoolean(value);
-        case "long":
-          return Long.parseLong(value);
-        case "float":
-          return Float.parseFloat(value);
-        case "double":
-          return Double.parseDouble(value);
-        case "short":
-          return Short.parseShort(value);
-        default:
-          // unsupported primitive type
-          throw new DjolarParserException("unsupported primitive type");
+    try {
+      Object parsedValue = dialect.parseQueryFieldValue(ms, parameterMappings, parameterObject,
+        additionalParameters, index, fieldName, operator, field, value);
+      return new WhereClause(field.getTableName(), field.getFieldName(), operator, parsedValue,
+        fieldType, true);
+    } catch (Exception e) {
+      if (throwIfExpressionInvalid) {
+        throw e;
       }
-    } else if (field.getFieldType().equals(String.class)) {
-      if (operator == Op.Contain || operator == Op.IgnoreCaseContain) {
-        return String.format("%%%s%%", value);
-      } else if (operator == Op.StartsWith) {
-        return String.format("%s%%", value);
-      } else if (operator == Op.EndsWith) {
-        return String.format("%%%s", value);
-      } else {
-        return value;
-      }
-    } else if (field.getFieldType().equals(Integer.class)) {
-      return Integer.parseInt(value);
-    } else if (field.getFieldType().equals(Boolean.class)) {
-      return Boolean.parseBoolean(value);
-    } else if (field.getFieldType().equals(Long.class)) {
-      return Long.parseLong(value);
-    } else if (field.getFieldType().equals(Float.class)) {
-      return Float.parseFloat(value);
-    } else if (field.getFieldType().equals(Double.class)) {
-      return Double.parseDouble(value);
-    } else if (field.getFieldType().equals(Short.class)) {
-      return Short.parseShort(value);
-    } else {
-      return null;
+      logger.warn(String.format("failed to parse value: %s", e.getMessage()));
+      return buildFalseWhereClause(ms, parameterMappings, parameterObject);
     }
   }
 
@@ -618,6 +521,6 @@ public class DjolarParser {
       int.class).build();
     parameterMappings.add(parameterMapping);
     parameterObject.put(property, value);
-    return new WhereClause(null, "1", Op.Equal, value, int.class, false);
+    return new WhereClause(null, "1", Op.EQUAL, value, int.class, false);
   }
 }

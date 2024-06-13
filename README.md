@@ -26,19 +26,21 @@ filter-clause := <field-name>__<operator>__<filter-value>
 
 support operators:
 
-| operator | stands for                 |
-|----------|----------------------------|
-| eq       | equal (=)                  |
-| gt       | greater than (>)           |
-| ge       | greater than or equal (>=) |
-| lt       | less than (<)              |
-| le       | less than or equal (<=)    |
-| co       | contain (LIKE)             |
-| sw       | starts with (LIKE)         |
-| ew       | ends with (LIKE)           |
-| in       | in (IN)                    |
-| nn       | is not null                |
-| nu       | is null                    |
+| operator | stands for                                                                                                                    |
+|----------|-------------------------------------------------------------------------------------------------------------------------------|
+| eq       | equal (=)                                                                                                                     |
+| gt       | greater than (>)                                                                                                              |
+| ge       | greater than or equal (>=)                                                                                                    |
+| lt       | less than (<)                                                                                                                 |
+| le       | less than or equal (<=)                                                                                                       |
+| co       | contain (LIKE)                                                                                                                |
+| sw       | starts with (LIKE)                                                                                                            |
+| ew       | ends with (LIKE)                                                                                                              |
+| in       | in (IN)                                                                                                                       |
+| nn       | is not null                                                                                                                   |
+| nu       | is null                                                                                                                       |
+| jo       | json overlaps, test if given field have any of the value in target list, eg., tags__jo__1,2, test tags contains 1 or 2        |
+| jc       | json contains, test if given field contains all the values in the target list. eg., tags__jc__1,2, test tags contains 1 and 2 |
 
 ## 1. Installation
 
@@ -131,6 +133,11 @@ support operators:
     ```
 
 ## Release Note
+
+## v1.9.0
+
+1. Add new operator `jo` (json overlaps) and `jc` (json contains).
+2. Refactor the operator specific value parsed logic into dialect.
 
 ## v1.8.5
 

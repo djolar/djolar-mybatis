@@ -21,12 +21,22 @@
  */
 package com.enixyu.djolar.mybatis.dialect;
 
+import com.enixyu.djolar.mybatis.parser.Op;
 import com.enixyu.djolar.mybatis.parser.OrderClause;
+import com.enixyu.djolar.mybatis.parser.QueryMapping.Item;
 import com.enixyu.djolar.mybatis.parser.WhereClause;
+import java.util.List;
+import java.util.Map;
+import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.ParameterMapping;
 
 public interface Dialect {
 
   String buildWhere(WhereClause whereClause);
 
   String buildOrderBy(OrderClause orderClause);
+
+  Object parseQueryFieldValue(MappedStatement ms, List<ParameterMapping> parameterMappings,
+    Map<String, Object> parameterObject, Map<String, Object> additionalParameters,
+    int fieldIndex, String fieldName, Op op, Item field, String value);
 }

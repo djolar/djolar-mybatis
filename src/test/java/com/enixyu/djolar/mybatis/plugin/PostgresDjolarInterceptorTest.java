@@ -18,7 +18,28 @@
  */
 package com.enixyu.djolar.mybatis.plugin;
 
+import com.enixyu.djolar.mybatis.mapper.BlogMapper;
+import com.enixyu.djolar.mybatis.parser.QueryRequest;
+import org.apache.ibatis.exceptions.PersistenceException;
+import org.apache.ibatis.session.SqlSession;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 public class PostgresDjolarInterceptorTest extends BaseTest {
+
+  @Test
+  void testJsonOverlapsShouldFail() {
+    Assertions.assertThrows(PersistenceException.class, () -> {
+      try (SqlSession session = this.sessionFactory.openSession()) {
+        setDjolarParameter(session, DjolarProperty.KEY_THROW_IF_EXPRESSION_INVALID,
+          DjolarProperty.VALUE_ON);
+        BlogMapper mapper = session.getMapper(BlogMapper.class);
+        QueryRequest queryRequest = new QueryRequest();
+        queryRequest.setQuery("tags__jo__1,2,3");
+        mapper.findAll(queryRequest);
+      }
+    });
+  }
 
   @Override
   protected String getMybatisConfigFileName() {

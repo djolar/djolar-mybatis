@@ -18,26 +18,31 @@
  */
 package com.enixyu.djolar.mybatis.dialect;
 
+import com.enixyu.djolar.mybatis.parser.Op;
 import com.enixyu.djolar.mybatis.parser.OrderClause;
+import com.enixyu.djolar.mybatis.parser.QueryMapping.Item;
 import com.enixyu.djolar.mybatis.parser.WhereClause;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.ParameterMapping;
 
 public class MySQLDialect extends BaseDialect {
 
   @Override
   public String buildWhere(WhereClause whereClause) {
     switch (whereClause.getOperator()) {
-      case IsNull:
-      case IsNotNull:
+      case IS_NULL:
+      case IS_NOT_NULL:
         return String.format("%s %s", getColumnName(whereClause),
           whereClause.getOperator().getSymbol());
-      case IgnoreCaseContain:
+      case IGNORE_CASE_CONTAIN:
         return String.format("LOWER(%s) %s LOWER(?)", getColumnName(whereClause),
           whereClause.getOperator().getSymbol()
         );
-      case In:
-      case NotIn: {
+      case IN:
+      case NOT_IN: {
         Object inVal = whereClause.getValue();
         if (!(inVal instanceof List)) {
           throw new IllegalArgumentException("IN value should be a valid list");
@@ -51,6 +56,10 @@ public class MySQLDialect extends BaseDialect {
           mark
         );
       }
+      case JSON_OVERLAPS:
+        return String.format("JSON_OVERLAPS(%s, ?)", getColumnName(whereClause));
+      case JSON_CONTAINS:
+        return String.format("JSON_CONTAINS(%s, ?, '$')", getColumnName(whereClause));
       default:
         return String.format("%s %s ?", getColumnName(whereClause),
           whereClause.getOperator().getSymbol()
@@ -63,6 +72,27 @@ public class MySQLDialect extends BaseDialect {
     return String.format("%s %s", getColumnName(orderClause),
       orderClause.isAscending() ? "ASC" : "DESC"
     );
+  }
+
+  @Override
+  public Object parseQueryFieldValue(MappedStatement ms, List<ParameterMapping> parameterMappings,
+    Map<String, Object> parameterObject, Map<String, Object> additionalParameters,
+    int fieldIndex, String fieldName, Op op, Item field, String value) {
+    if (op == Op.IN || op == Op.NOT_IN) {
+      // For IN or NOT IN operator
+      // We need to split the value into tokens and parse to target field type
+      return parseListValueField(ms, parameterMappings, parameterObject, additionalParameters,
+        fieldIndex,
+        op, field, value);
+    } else if (op == Op.JSON_OVERLAPS || op == Op.JSON_CONTAINS) {
+      // json overlaps/contains
+      return parseSingleValueField(ms, parameterMappings, parameterObject, fieldIndex, op, field,
+        "[" + value + "]");
+    } else {
+      // Single value case
+      return parseSingleValueField(ms, parameterMappings, parameterObject, fieldIndex, op, field,
+        value);
+    }
   }
 
   @Override

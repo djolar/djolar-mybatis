@@ -18,27 +18,32 @@
  */
 package com.enixyu.djolar.mybatis.dialect;
 
+import com.enixyu.djolar.mybatis.parser.Op;
 import com.enixyu.djolar.mybatis.parser.OrderClause;
+import com.enixyu.djolar.mybatis.parser.QueryMapping.Item;
 import com.enixyu.djolar.mybatis.parser.WhereClause;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.ParameterMapping;
 
 public class PostgreSQLDialect extends BaseDialect {
 
   @Override
   public String buildWhere(WhereClause whereClause) {
     switch (whereClause.getOperator()) {
-      case IsNull:
-      case IsNotNull:
+      case IS_NULL:
+      case IS_NOT_NULL:
         return String.format("%s %s", getColumnName(whereClause),
           whereClause.getOperator().getSymbol()
         );
-      case IgnoreCaseContain:
+      case IGNORE_CASE_CONTAIN:
         return String.format("LOWER(%s) %s LOWER(?)", getColumnName(whereClause),
           whereClause.getOperator().getSymbol()
         );
-      case In:
-      case NotIn: {
+      case IN:
+      case NOT_IN: {
         Object inVal = whereClause.getValue();
         if (!(inVal instanceof List)) {
           throw new IllegalArgumentException("IN value should be a valid list");
@@ -52,10 +57,38 @@ public class PostgreSQLDialect extends BaseDialect {
           mark
         );
       }
+      case JSON_OVERLAPS:
+        throw new IllegalArgumentException("jo (json overlaps) is not support in postgresql");
+      case JSON_CONTAINS:
+        return String.format("%s @> CAST(? AS JSONB)", getColumnName(whereClause));
       default:
         return String.format("%s %s ?", getColumnName(whereClause),
           whereClause.getOperator().getSymbol()
         );
+    }
+  }
+
+  @Override
+  public Object parseQueryFieldValue(MappedStatement ms, List<ParameterMapping> parameterMappings,
+    Map<String, Object> parameterObject, Map<String, Object> additionalParameters,
+    int fieldIndex, String fieldName, Op op, Item field, String value) {
+    if (op == Op.IN || op == Op.NOT_IN) {
+      // For IN or NOT IN operator
+      // We need to split the value into tokens and parse to target field type
+      return parseListValueField(ms, parameterMappings, parameterObject, additionalParameters,
+        fieldIndex,
+        op, field, value);
+    } else if (op == Op.JSON_OVERLAPS) {
+      // json overlaps
+      throw new IllegalArgumentException("jo (json overlaps) is not support in postgresql");
+    } else if (op == Op.JSON_CONTAINS) {
+      // json contains
+      return parseSingleValueField(ms, parameterMappings, parameterObject, fieldIndex, op, field,
+        "[" + value + "]");
+    } else {
+      // Single value case
+      return parseSingleValueField(ms, parameterMappings, parameterObject, fieldIndex, op, field,
+        value);
     }
   }
 

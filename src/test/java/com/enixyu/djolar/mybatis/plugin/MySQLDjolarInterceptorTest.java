@@ -18,7 +18,36 @@
  */
 package com.enixyu.djolar.mybatis.plugin;
 
+import com.enixyu.djolar.mybatis.domain.Blog;
+import com.enixyu.djolar.mybatis.mapper.BlogMapper;
+import com.enixyu.djolar.mybatis.parser.QueryRequest;
+import java.util.List;
+import org.apache.ibatis.session.SqlSession;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 public class MySQLDjolarInterceptorTest extends BaseTest {
+
+  @Test
+  void testJsonOverlapsShouldSuccess() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      setDjolarParameter(session, DjolarProperty.KEY_THROW_IF_EXPRESSION_INVALID,
+        DjolarProperty.VALUE_OFF);
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest queryRequest = new QueryRequest();
+      queryRequest.setQuery("tags__jo__1,2,3");
+      List<Blog> results = mapper.findAll(queryRequest);
+      Assertions.assertEquals(14, results.size());
+
+      queryRequest.setQuery("tags__jo__1");
+      results = mapper.findAll(queryRequest);
+      Assertions.assertEquals(8, results.size());
+
+      queryRequest.setQuery("tags__jo__4");
+      results = mapper.findAll(queryRequest);
+      Assertions.assertEquals(0, results.size());
+    }
+  }
 
   @Override
   protected String getMybatisConfigFileName() {

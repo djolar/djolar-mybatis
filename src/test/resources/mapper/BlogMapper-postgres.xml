@@ -4,35 +4,35 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.enixyu.djolar.mybatis.mapper.BlogMapper">
   <select id="findAll" resultType="com.enixyu.djolar.mybatis.domain.Blog">
-    SELECT * FROM "blog"
+    SELECT "blog"."id", "blog"."name", "blog"."user_id" FROM "blog"
   </select>
 
   <select id="findMyBlogs" resultType="com.enixyu.djolar.mybatis.domain.Blog">
-    SELECT * FROM "blog"
+    SELECT "blog"."id", "blog"."name", "blog"."user_id" FROM "blog"
   </select>
 
   <select id="findUserBlogs" resultType="com.enixyu.djolar.mybatis.domain.Blog">
-    SELECT "blog".* FROM "blog"
+    SELECT "blog"."id", "blog"."name", "blog"."user_id" FROM "blog"
     INNER JOIN "user" ON "blog"."user_id" = "user"."id" AND "user"."id" = #{arg1}
   </select>
 
   <select id="findByUserIdAndName" resultType="com.enixyu.djolar.mybatis.domain.Blog">
-    SELECT * FROM blog
+    SELECT "blog"."id", "blog"."name", "blog"."user_id" FROM "blog"
     WHERE user_id = #{userId} AND name = #{name}
   </select>
 
   <select id="findById" resultType="com.enixyu.djolar.mybatis.domain.Blog">
-    SELECT * FROM "blog" WHERE "id" = #{id}
+    SELECT "blog"."id", "blog"."name", "blog"."user_id" FROM "blog" WHERE "id" = #{id}
   </select>
 
   <select id="findBlogWithUser" resultType="com.enixyu.djolar.mybatis.domain.Blog">
-    SELECT "blog".* FROM "blog"
+    SELECT "blog"."id", "blog"."name", "blog"."user_id" FROM "blog"
     INNER JOIN "user" ON "blog"."user_id" = "user"."id"
   </select>
 
   <select id="findBlogWithIdRange" resultType="com.enixyu.djolar.mybatis.domain.Blog"
     parameterType="list">
-    SELECT "blog".* FROM "blog"
+    SELECT "blog"."id", "blog"."name", "blog"."user_id" FROM "blog"
     <where>
       "id" IN
       <foreach item="id" collection="ids1" separator="," open="(" close=")">
@@ -46,12 +46,12 @@
   </select>
 
   <select id="findByUserQueryRequest" resultType="com.enixyu.djolar.mybatis.domain.Blog">
-    SELECT * FROM "blog"
+    SELECT "blog"."id", "blog"."name", "blog"."user_id" FROM "blog"
     INNER JOIN "user" ON "blog"."user_id" = "user"."id" AND "user"."id" = #{userId}
   </select>
 
   <select id="findByBlogQueryRequest" resultType="com.enixyu.djolar.mybatis.domain.Blog">
-    SELECT * FROM "blog"
+    SELECT "blog"."id", "blog"."name", "blog"."user_id" FROM "blog"
     INNER JOIN "user" ON "blog"."user_id" = "user"."id" AND "user"."id" = #{userId}
   </select>
 </mapper>

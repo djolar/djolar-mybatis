@@ -1,7 +1,8 @@
 CREATE TABLE "blog" (
     "id" SERIAL PRIMARY KEY,
     "name" VARCHAR(20),
-    "user_id" INT
+    "user_id" INT,
+    "tags" JSONB
 );
 
 CREATE TABLE "user" (
@@ -14,18 +15,18 @@ INSERT INTO "user" (name, age) VALUES ('user1', 18);
 INSERT INTO "user" (name, age) VALUES ('user2', 20);
 INSERT INTO "user" (name, age) VALUES ('user3', 34);
 
-INSERT INTO "blog" (name, user_id) VALUES ('abc1', 1);
-INSERT INTO "blog" (name, user_id) VALUES ('abc2', 1);
-INSERT INTO "blog" (name, user_id) VALUES ('abc3', 1);
-INSERT INTO "blog" (name, user_id) VALUES ('abc4', 2);
-INSERT INTO "blog" (name, user_id) VALUES ('abc5', 2);
-INSERT INTO "blog" (name, user_id) VALUES ('abc6', 2);
-INSERT INTO "blog" (name, user_id) VALUES ('abc7', 2);
-INSERT INTO "blog" (name, user_id) VALUES ('abc8', 2);
-INSERT INTO "blog" (name, user_id) VALUES ('abc9', 2);
-INSERT INTO "blog" (name, user_id) VALUES ('ebc0', 2);
-INSERT INTO "blog" (name, user_id) VALUES ('ddd6', 2);
-INSERT INTO "blog" (name, user_id) VALUES ('yc6', 2);
-INSERT INTO "blog" (name, user_id) VALUES ('xyz', 2);
-INSERT INTO "blog" (name, user_id) VALUES ('666', 3);
-INSERT INTO "blog" (name, user_id) VALUES (null, 3);
+INSERT INTO "blog" (name, user_id, tags) VALUES ('abc1', 1, '[1, 2, 3]');
+INSERT INTO "blog" (name, user_id, tags) VALUES ('abc2', 1, '[1, 2]');
+INSERT INTO "blog" (name, user_id, tags) VALUES ('abc3', 1, '[2, 3]');
+INSERT INTO "blog" (name, user_id, tags) VALUES ('abc4', 2, '[1]');
+INSERT INTO "blog" (name, user_id, tags) VALUES ('abc5', 2, '[2]');
+INSERT INTO "blog" (name, user_id, tags) VALUES ('abc6', 2, '[3]');
+INSERT INTO "blog" (name, user_id, tags) VALUES ('abc7', 2, '[1, 2, 3]');
+INSERT INTO "blog" (name, user_id, tags) VALUES ('abc8', 2, '[1]');
+INSERT INTO "blog" (name, user_id, tags) VALUES ('abc9', 2, '[2]');
+INSERT INTO "blog" (name, user_id, tags) VALUES ('ebc0', 2, '[3]');
+INSERT INTO "blog" (name, user_id, tags) VALUES ('ddd6', 2, '[1, 2]');
+INSERT INTO "blog" (name, user_id, tags) VALUES ('yc6', 2, '[1, 3]');
+INSERT INTO "blog" (name, user_id, tags) VALUES ('xyz', 2, '[2, 3]');
+INSERT INTO "blog" (name, user_id, tags) VALUES ('666', 3, '[3, 1]');
+INSERT INTO "blog" (name, user_id, tags) VALUES (null, 3, null);
