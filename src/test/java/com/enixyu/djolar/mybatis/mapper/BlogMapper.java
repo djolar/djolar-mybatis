@@ -43,7 +43,7 @@ public interface BlogMapper {
   List<Blog> findMyBlogs(QueryRequest request);
 
   @AdditionalSort(sort = "-id")
-  List<Blog> findUserBlogs(QueryRequest queryRequest, int userId);
+  List<Blog> findUserBlogs(@Param("queryRequest") QueryRequest queryRequest, @Param("userId") int userId);
 
   List<Blog> findByUserIdAndName(@Param("userId") int userId, @Param("name") String name);
 
@@ -52,8 +52,8 @@ public interface BlogMapper {
   @Mapping(BlogDjolarMapping.class)
   List<Blog> findBlogWithUser(QueryRequest request);
 
-  List<Blog> findBlogWithIdRange(@Param("ids1") List<Integer> ids1,
-    @Param("ids2") List<Integer> ids2);
+  List<Blog> findBlogWithIdRange(@Param("queryRequest") QueryRequest queryRequest,
+    @Param("ids1") List<Integer> ids1, @Param("ids2") List<Integer> ids2);
 
   List<Blog> findByUserQueryRequest(UserQueryRequest request);
 

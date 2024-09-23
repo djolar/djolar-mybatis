@@ -28,6 +28,7 @@ import com.enixyu.djolar.mybatis.parser.QueryRequest;
 import com.enixyu.djolar.mybatis.parser.QueryRequest.QueryRequestBuilder;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import org.apache.ibatis.exceptions.PersistenceException;
@@ -519,6 +520,27 @@ public abstract class BaseTest extends SessionAwareManager {
       queryRequest.setQuery("tags__jc__4");
       results = mapper.findAll(queryRequest);
       Assertions.assertEquals(0, results.size());
+    }
+  }
+
+  @Test
+  void testDjolarQueryWithListParams() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      setDjolarParameter(session, DjolarProperty.KEY_THROW_IF_EXPRESSION_INVALID,
+        DjolarProperty.VALUE_OFF);
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest queryRequest = new QueryRequest();
+      queryRequest.setQuery("n__eq__abc1|user_id__in__1,2");
+      List<Integer> ids1 = new ArrayList<>();
+      ids1.add(1);
+      ids1.add(2);
+      ids1.add(3);
+      List<Integer> ids2 = new ArrayList<>();
+      ids2.add(4);
+      ids2.add(5);
+      ids2.add(6);
+      List<Blog> results = mapper.findBlogWithIdRange(queryRequest, ids1, ids2);
+      Assertions.assertEquals(1, results.size());
     }
   }
 

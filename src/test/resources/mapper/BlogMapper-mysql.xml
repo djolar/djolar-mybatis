@@ -17,7 +17,7 @@
 
   <select id="findUserBlogs" resultType="com.enixyu.djolar.mybatis.domain.Blog">
     SELECT `blog`.`id`, `blog`.`name`, `blog`.`user_id` FROM `blog`
-    INNER JOIN `user` ON `blog`.`user_id` = `user`.`id` AND `user`.`id` = #{arg1}
+    INNER JOIN `user` ON `blog`.`user_id` = `user`.`id` AND `user`.`id` = #{userId}
   </select>
 
   <select id="findByUserIdAndName" resultType="com.enixyu.djolar.mybatis.domain.Blog">
@@ -37,17 +37,20 @@
 
   <select id="findBlogWithIdRange" resultType="com.enixyu.djolar.mybatis.domain.Blog"
     parameterType="list">
-    SELECT `blog`.`id`, `blog`.`name`, `blog`.`user_id` FROM `blog`
-    <where>
-      `id` IN
-      <foreach item="id" collection="ids1" separator="," open="(" close=")">
-        #{id, jdbcType=NUMERIC}
-      </foreach>
-      AND `id` IN
-      <foreach item="id" collection="ids2" separator="," open="(" close=")">
-        #{id, jdbcType=NUMERIC}
-      </foreach>
-    </where>
+    SELECT `blog`.`id`, `blog`.`name`, `blog`.`user_id`
+    FROM (
+      SELECT `blog`.`id`, `blog`.`name`, `blog`.`user_id` FROM `blog`
+      <where>
+        `id` IN
+        <foreach item="id" collection="ids1" separator="," open="(" close=")">
+          #{id, jdbcType=NUMERIC}
+        </foreach>
+        OR `id` IN
+        <foreach item="id" collection="ids2" separator="," open="(" close=")">
+          #{id, jdbcType=NUMERIC}
+        </foreach>
+      </where>
+    ) AS `blog`
   </select>
 
   <select id="findByUserQueryRequest" resultType="com.enixyu.djolar.mybatis.domain.Blog">

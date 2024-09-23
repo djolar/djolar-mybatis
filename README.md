@@ -134,6 +134,10 @@ support operators:
 
 ## Release Note
 
+## v1.9.1
+
+1. IN values missing when mapper xml sql using `IN` operator.
+
 ## v1.9.0
 
 1. Add new operator `jo` (json overlaps) and `jc` (json contains).

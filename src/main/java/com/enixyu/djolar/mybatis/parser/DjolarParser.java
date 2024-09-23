@@ -153,7 +153,7 @@ public class DjolarParser {
     QueryMapping queryMapping = loadQueryMapping(ms.getId(), mappingAnnotation.value());
     List<ParameterMapping> parameterMappings = new ArrayList<>(boundSql.getParameterMappings());
     Map<String, Object> parameterObject = initParameterObject(boundSql);
-    Map<String, Object> additionalParameters = new HashMap<>();
+    Map<String, Object> additionalParameters = new HashMap<>(boundSql.getAdditionalParameters());
 
     // parse where clause
     List<WhereClause> whereClauseList = parseQueryFields(
