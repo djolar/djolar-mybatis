@@ -30,5 +30,6 @@
 
   <mappers>
     <mapper resource="mapper/BlogMapper-postgres.xml"/>
+    <mapper resource="mapper/RateMapper-postgres.xml"/>
   </mappers>
 </configuration>

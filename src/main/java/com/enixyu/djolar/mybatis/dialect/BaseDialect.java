@@ -118,4 +118,11 @@ public abstract class BaseDialect implements Dialect {
     parameterObject.put(property, parsedValue);
     return parsedValue;
   }
+
+  protected boolean isBlank(String value) {
+    if (value == null) {
+      return true;
+    }
+    return value.isEmpty();
+  }
 }

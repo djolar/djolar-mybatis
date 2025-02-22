@@ -86,21 +86,23 @@ public class DjolarParser {
   private final Pattern mapperIdPattern = Pattern.compile("^([\\w.]+)\\.(\\w+)$");
   private volatile Dialect dialect;
 
-  private static void reduceFieldMapping(Field field, QueryMapping queryMapping, String tableName) {
+  private static void reduceFieldMapping(Field field, QueryMapping queryMapping,
+    String databaseName, String tableName) {
     Column column = field.getAnnotation(Column.class);
     if (column == null) {
       queryMapping.set(
         field.getName(),
-        new QueryMapping.Item(tableName, field.getName(), field.getType())
+        new QueryMapping.Item(databaseName, tableName, field.getName(), field.getType())
       );
       return;
     }
 
+    databaseName = column.databaseName().isEmpty() ? databaseName : column.databaseName();
     tableName = column.tableName().isEmpty() ? tableName : column.tableName();
     String fieldName = column.columnName().isEmpty() ? field.getName() : column.columnName();
     queryMapping.set(
       column.queryAlias(),
-      new QueryMapping.Item(tableName, fieldName, field.getType())
+      new QueryMapping.Item(databaseName, tableName, fieldName, field.getType())
     );
   }
 
@@ -237,11 +239,12 @@ public class DjolarParser {
     Table tableNameAnnotation = fieldMappingClass.getAnnotation(Table.class);
     String tableName = tableNameAnnotation != null ? tableNameAnnotation.value()
       : fieldMappingClass.getName().toLowerCase();
+    String databaseName = tableNameAnnotation != null ? tableNameAnnotation.databaseName() : "";
     return cachedQueryMapping.computeIfAbsent(id, k -> {
       QueryMapping mapping = new QueryMapping();
       List<Field> allFields = cachedClassFields.computeIfAbsent(fieldMappingClass,
         (ignored) -> getAllFields(fieldMappingClass));
-      allFields.forEach(f -> reduceFieldMapping(f, mapping, tableName));
+      allFields.forEach(f -> reduceFieldMapping(f, mapping, databaseName, tableName));
       return mapping;
     });
   }
@@ -388,8 +391,8 @@ public class DjolarParser {
 
     if (groups.length == 2) {
       // clause without value case
-      return new WhereClause(field.getTableName(), field.getFieldName(), operator, null,
-        field.getFieldType(), true);
+      return new WhereClause(field.getDatabaseName(), field.getTableName(), field.getFieldName(),
+        operator, null, field.getFieldType(), true);
     }
 
     // parse value
@@ -399,8 +402,8 @@ public class DjolarParser {
     try {
       Object parsedValue = dialect.parseQueryFieldValue(ms, parameterMappings, parameterObject,
         additionalParameters, index, fieldName, operator, field, value);
-      return new WhereClause(field.getTableName(), field.getFieldName(), operator, parsedValue,
-        fieldType, true);
+      return new WhereClause(field.getDatabaseName(), field.getTableName(), field.getFieldName(),
+        operator, parsedValue, fieldType, true);
     } catch (Exception e) {
       if (throwIfExpressionInvalid) {
         throw e;
@@ -435,8 +438,8 @@ public class DjolarParser {
         throw new DjolarParserException(
           String.format("sort field '%s' not found in query mapping", fieldName));
       }
-      return new OrderClause(field.getTableName(), field.getFieldName(), !"-".equals(ascDesc),
-        true);
+      return new OrderClause(field.getDatabaseName(), field.getTableName(), field.getFieldName(),
+        !"-".equals(ascDesc), true);
     }).collect(Collectors.toList());
   }
 
@@ -521,6 +524,6 @@ public class DjolarParser {
       int.class).build();
     parameterMappings.add(parameterMapping);
     parameterObject.put(property, value);
-    return new WhereClause(null, "1", Op.EQUAL, value, int.class, false);
+    return new WhereClause(null, null, "1", Op.EQUAL, value, int.class, false);
   }
 }

@@ -2,13 +2,16 @@ package com.enixyu.djolar.mybatis.parser;
 
 public abstract class Clause {
 
+  private String databaseName;
+
   private String tableName;
 
   private String columnName;
 
   private boolean needEscape;
 
-  public Clause(String tableName, String columnName, boolean needEscape) {
+  public Clause(String databaseName, String tableName, String columnName, boolean needEscape) {
+    this.databaseName = databaseName;
     this.tableName = tableName;
     this.columnName = columnName;
     this.needEscape = needEscape;
@@ -36,5 +39,13 @@ public abstract class Clause {
 
   public void setNeedEscape(boolean needEscape) {
     this.needEscape = needEscape;
+  }
+
+  public String getDatabaseName() {
+    return databaseName;
+  }
+
+  public void setDatabaseName(String databaseName) {
+    this.databaseName = databaseName;
   }
 }

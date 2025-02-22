@@ -18,6 +18,7 @@
  */
 package com.enixyu.djolar.mybatis.dialect;
 
+import com.enixyu.djolar.mybatis.parser.Clause;
 import com.enixyu.djolar.mybatis.parser.Op;
 import com.enixyu.djolar.mybatis.parser.OrderClause;
 import com.enixyu.djolar.mybatis.parser.QueryMapping.Item;
@@ -65,6 +66,18 @@ public class MySQLDialect extends BaseDialect {
           whereClause.getOperator().getSymbol()
         );
     }
+  }
+
+  @Override
+  protected String getColumnName(Clause clause) {
+    String quote = clause.isNeedEscape() ? getFieldQuoteSymbol() : "";
+    return clause.getTableName() == null
+      ? String.format("%s%s%s", quote, clause.getColumnName(), quote)
+      : isBlank(clause.getDatabaseName())
+        ? String.format("%s%s%s.%s%s%s", quote, clause.getTableName(), quote, quote,
+        clause.getColumnName(), quote)
+        : String.format("%s%s%s.%s%s%s.%s%s%s", quote, clause.getDatabaseName(), quote, quote,
+          clause.getTableName(), quote, quote, clause.getColumnName(), quote);
   }
 
   @Override

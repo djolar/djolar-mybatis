@@ -32,6 +32,8 @@ import java.lang.annotation.Target;
 public @interface Column {
     String queryAlias();
 
+    String databaseName() default "";
+
     String tableName() default "";
 
     String columnName() default "";

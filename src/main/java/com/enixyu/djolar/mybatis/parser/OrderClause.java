@@ -4,8 +4,9 @@ public class OrderClause extends Clause {
 
   private boolean ascending;
 
-  public OrderClause(String tableName, String columnName, boolean ascending, boolean needEscape) {
-    super(tableName, columnName, needEscape);
+  public OrderClause(String databaseName, String tableName, String columnName, boolean ascending,
+    boolean needEscape) {
+    super(databaseName, tableName, columnName, needEscape);
     this.ascending = ascending;
   }
 
@@ -20,7 +21,8 @@ public class OrderClause extends Clause {
   @Override
   public String toString() {
     return "OrderClause{" +
-      "tableName='" + getTableName() + '\'' +
+      "databaseName='" + getDatabaseName() + '\'' +
+      ", tableName='" + getTableName() + '\'' +
       ", columnName='" + getColumnName() + '\'' +
       ", ascending=" + ascending + '\'' +
       ", needEscape=" + isNeedEscape() +

@@ -20,9 +20,11 @@ package com.enixyu.djolar.mybatis.plugin;
 
 import com.enixyu.djolar.mybatis.domain.Blog;
 import com.enixyu.djolar.mybatis.domain.BlogQueryRequest;
+import com.enixyu.djolar.mybatis.domain.Rate;
 import com.enixyu.djolar.mybatis.domain.UserQueryRequest;
 import com.enixyu.djolar.mybatis.exceptions.DjolarParserException;
 import com.enixyu.djolar.mybatis.mapper.BlogMapper;
+import com.enixyu.djolar.mybatis.mapper.RateMapper;
 import com.enixyu.djolar.mybatis.parser.Op;
 import com.enixyu.djolar.mybatis.parser.QueryRequest;
 import com.enixyu.djolar.mybatis.parser.QueryRequest.QueryRequestBuilder;
@@ -541,6 +543,18 @@ public abstract class BaseTest extends SessionAwareManager {
       ids2.add(6);
       List<Blog> results = mapper.findBlogWithIdRange(queryRequest, ids1, ids2);
       Assertions.assertEquals(1, results.size());
+    }
+  }
+
+  @Test
+  void testTableAnnotationWithDatabase() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      RateMapper mapper = session.getMapper(RateMapper.class);
+      QueryRequest queryRequest = new QueryRequest();
+      queryRequest.setQuery("id__eq__1");
+      List<Rate> results = mapper.find(queryRequest);
+      Assertions.assertEquals(1, results.size());
+      Assertions.assertEquals(1, results.get(0).getId());
     }
   }
 

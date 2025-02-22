@@ -43,7 +43,7 @@ public class DjolarAutoDialect {
   @SuppressWarnings("unchecked")
   public void initAutoDialect(Properties properties) {
     String dialectClassName = properties.getProperty(DjolarProperty.KEY_DIALECT);
-    if (dialectClassName != null && dialectClassName.length() > 0) {
+    if (dialectClassName != null && !dialectClassName.isEmpty()) {
       String[] tokens = dialectClassName.split("=");
       if (tokens.length != 2) {
         throw new IllegalArgumentException(
@@ -51,7 +51,7 @@ public class DjolarAutoDialect {
       }
       try {
         Class<? extends Dialect> dialectCls = (Class<? extends Dialect>) Class.forName(tokens[1]);
-        dialects.put(tokens[0], dialectCls);
+        dialects.put(tokens[0].toLowerCase(), dialectCls);
       } catch (ClassNotFoundException e) {
         throw new IllegalArgumentException(
           "dialect class not found, please check your plugin config");
@@ -63,7 +63,7 @@ public class DjolarAutoDialect {
   }
 
   public Class<? extends Dialect> resolveDialect(String dialectAlias) {
-    Class<? extends Dialect> dialectCls = dialects.get(dialectAlias);
+    Class<? extends Dialect> dialectCls = dialects.get(dialectAlias.toLowerCase());
     if (dialectCls == null) {
       throw new IllegalArgumentException(
         String.format("dialect %s is not supported", dialectAlias));
