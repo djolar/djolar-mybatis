@@ -71,13 +71,18 @@ public class MySQLDialect extends BaseDialect {
   @Override
   protected String getColumnName(Clause clause) {
     String quote = clause.isNeedEscape() ? getFieldQuoteSymbol() : "";
-    return clause.getTableName() == null
+    String columnName = clause.getTableName() == null
       ? String.format("%s%s%s", quote, clause.getColumnName(), quote)
       : isBlank(clause.getDatabaseName())
         ? String.format("%s%s%s.%s%s%s", quote, clause.getTableName(), quote, quote,
         clause.getColumnName(), quote)
         : String.format("%s%s%s.%s%s%s.%s%s%s", quote, clause.getDatabaseName(), quote, quote,
           clause.getTableName(), quote, quote, clause.getColumnName(), quote);
+
+    if (clause.getJsonPath() == null || clause.getJsonPath().isEmpty()) {
+      return columnName;
+    }
+    return String.format("%s->>'%s'", columnName, clause.getJsonPath());
   }
 
   @Override

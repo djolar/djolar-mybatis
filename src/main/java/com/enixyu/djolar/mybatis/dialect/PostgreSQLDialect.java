@@ -18,6 +18,7 @@
  */
 package com.enixyu.djolar.mybatis.dialect;
 
+import com.enixyu.djolar.mybatis.exceptions.DjolarParserException;
 import com.enixyu.djolar.mybatis.parser.Op;
 import com.enixyu.djolar.mybatis.parser.OrderClause;
 import com.enixyu.djolar.mybatis.parser.QueryMapping.Item;
@@ -32,16 +33,22 @@ public class PostgreSQLDialect extends BaseDialect {
 
   @Override
   public String buildWhere(WhereClause whereClause) {
+    String columnName = getColumnName(whereClause);
+    String jsonPath = whereClause.getJsonPath();
+    String opSymbol = whereClause.getOperator().getSymbol();
+    if (jsonPath != null && !jsonPath.isEmpty()) {
+      String castType = getJsonCastType(whereClause);
+      return castType == null
+        ? String.format("(%s #>> '{%s}') %s ?", columnName, jsonPath.replace("$.", ""), opSymbol)
+        : String.format("(%s #>> '{%s}')::%s %s ?", columnName, jsonPath.replace("$.", ""),
+          castType, opSymbol);
+    }
     switch (whereClause.getOperator()) {
       case IS_NULL:
       case IS_NOT_NULL:
-        return String.format("%s %s", getColumnName(whereClause),
-          whereClause.getOperator().getSymbol()
-        );
+        return String.format("%s %s", columnName, opSymbol);
       case IGNORE_CASE_CONTAIN:
-        return String.format("LOWER(%s) %s LOWER(?)", getColumnName(whereClause),
-          whereClause.getOperator().getSymbol()
-        );
+        return String.format("LOWER(%s) %s LOWER(?)", columnName, opSymbol);
       case IN:
       case NOT_IN: {
         Object inVal = whereClause.getValue();
@@ -52,19 +59,14 @@ public class PostgreSQLDialect extends BaseDialect {
           .stream()
           .map(ignore -> "?")
           .collect(Collectors.joining(","));
-        return String.format("%s %s (%s)", getColumnName(whereClause),
-          whereClause.getOperator().getSymbol(),
-          mark
-        );
+        return String.format("%s %s (%s)", columnName, opSymbol, mark);
       }
       case JSON_OVERLAPS:
         throw new IllegalArgumentException("jo (json overlaps) is not support in postgresql");
       case JSON_CONTAINS:
-        return String.format("%s @> CAST(? AS JSONB)", getColumnName(whereClause));
+        return String.format("%s @> CAST(? AS JSONB)", columnName);
       default:
-        return String.format("%s %s ?", getColumnName(whereClause),
-          whereClause.getOperator().getSymbol()
-        );
+        return String.format("%s %s ?", columnName, opSymbol);
     }
   }
 
@@ -102,5 +104,44 @@ public class PostgreSQLDialect extends BaseDialect {
   @Override
   protected String getFieldQuoteSymbol() {
     return "\"";
+  }
+
+  private String getJsonCastType(WhereClause clause) {
+    Class<?> cls = clause.getValueType();
+    if (cls.isPrimitive()) {
+      switch (cls.getName()) {
+        case "int":
+          return "int";
+        case "long":
+          return "bigint";
+        case "short":
+          return "smallint";
+        case "boolean":
+          return "boolean";
+        case "float":
+          return "real";
+        case "double":
+          return "double";
+        default:
+          // unsupported primitive type
+          throw new DjolarParserException("unsupported primitive type");
+      }
+    } else if (cls.equals(String.class)) {
+      return "text";
+    } else if (cls.equals(Integer.class)) {
+      return "int";
+    } else if (cls.equals(Boolean.class)) {
+      return "boolean";
+    } else if (cls.equals(Short.class)) {
+      return "smallint";
+    } else if (cls.equals(Long.class)) {
+      return "bigint";
+    } else if (cls.equals(Float.class)) {
+      return "real";
+    } else if (cls.equals(Double.class)) {
+      return "double";
+    } else {
+      return null;
+    }
   }
 }

@@ -33,8 +33,9 @@ public abstract class BaseDialect implements Dialect {
    */
   protected Object parseValue(QueryMapping.Item field, Op operator, String value)
     throws NumberFormatException, DjolarParserException {
-    if (field.getFieldType().isPrimitive()) {
-      switch (field.getFieldType().getName()) {
+    Class<?> fieldCls = field.getFieldType();
+    if (fieldCls.isPrimitive()) {
+      switch (fieldCls.getName()) {
         case "int":
           return Integer.parseInt(value);
         case "boolean":
@@ -51,7 +52,7 @@ public abstract class BaseDialect implements Dialect {
           // unsupported primitive type
           throw new DjolarParserException("unsupported primitive type");
       }
-    } else if (field.getFieldType().equals(String.class)) {
+    } else if (fieldCls.equals(String.class)) {
       if (operator == Op.CONTAIN || operator == Op.IGNORE_CASE_CONTAIN) {
         return String.format("%%%s%%", value);
       } else if (operator == Op.STARTS_WITH) {
@@ -61,17 +62,17 @@ public abstract class BaseDialect implements Dialect {
       } else {
         return value;
       }
-    } else if (field.getFieldType().equals(Integer.class)) {
+    } else if (fieldCls.equals(Integer.class)) {
       return Integer.parseInt(value);
-    } else if (field.getFieldType().equals(Boolean.class)) {
+    } else if (fieldCls.equals(Boolean.class)) {
       return Boolean.parseBoolean(value);
-    } else if (field.getFieldType().equals(Long.class)) {
+    } else if (fieldCls.equals(Long.class)) {
       return Long.parseLong(value);
-    } else if (field.getFieldType().equals(Float.class)) {
+    } else if (fieldCls.equals(Float.class)) {
       return Float.parseFloat(value);
-    } else if (field.getFieldType().equals(Double.class)) {
+    } else if (fieldCls.equals(Double.class)) {
       return Double.parseDouble(value);
-    } else if (field.getFieldType().equals(Short.class)) {
+    } else if (fieldCls.equals(Short.class)) {
       return Short.parseShort(value);
     } else {
       return null;

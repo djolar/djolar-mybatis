@@ -8,13 +8,17 @@ public abstract class Clause {
 
   private String columnName;
 
+  private String jsonPath;
+
   private boolean needEscape;
 
-  public Clause(String databaseName, String tableName, String columnName, boolean needEscape) {
+  public Clause(String databaseName, String tableName, String columnName, boolean needEscape,
+    String jsonPath) {
     this.databaseName = databaseName;
     this.tableName = tableName;
     this.columnName = columnName;
     this.needEscape = needEscape;
+    this.jsonPath = jsonPath;
   }
 
   public boolean isNeedEscape() {
@@ -47,5 +51,13 @@ public abstract class Clause {
 
   public void setDatabaseName(String databaseName) {
     this.databaseName = databaseName;
+  }
+
+  public String getJsonPath() {
+    return jsonPath;
+  }
+
+  public void setJsonPath(String jsonPath) {
+    this.jsonPath = jsonPath;
   }
 }

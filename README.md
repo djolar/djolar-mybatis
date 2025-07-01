@@ -134,7 +134,15 @@ support operators:
 
 ## Release Note
 
-## 1. v1.10.0
+## v1.11.0
+
+1. Support json path definition in query mapping
+   ```java
+   @Column(queryAlias = "click", columnName = "attrs", jsonPath = "$.click")
+   private int click;
+   ```
+
+## v1.10.0
 
 1. Fix matching custom dialect name with case-insensitive mode.
 2. Support specifying `databaseName` in sql for cross-database querying (mysql)

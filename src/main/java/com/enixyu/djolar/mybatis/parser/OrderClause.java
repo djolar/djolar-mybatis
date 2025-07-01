@@ -5,8 +5,8 @@ public class OrderClause extends Clause {
   private boolean ascending;
 
   public OrderClause(String databaseName, String tableName, String columnName, boolean ascending,
-    boolean needEscape) {
-    super(databaseName, tableName, columnName, needEscape);
+    boolean needEscape, String jsonPath) {
+    super(databaseName, tableName, columnName, needEscape, jsonPath);
     this.ascending = ascending;
   }
 

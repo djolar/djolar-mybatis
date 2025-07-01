@@ -43,6 +43,16 @@ public class QueryMapping {
     private String tableName;
     private String fieldName;
     private Class<?> fieldType;
+    private String jsonPath;
+
+    public Item(String databaseName, String tableName, String fieldName, Class<?> fieldType,
+      String jsonPath) {
+      this.databaseName = databaseName;
+      this.tableName = tableName;
+      this.fieldName = fieldName;
+      this.fieldType = fieldType;
+      this.jsonPath = jsonPath;
+    }
 
     public String getDatabaseName() {
       return databaseName;
@@ -76,11 +86,12 @@ public class QueryMapping {
       this.fieldType = fieldType;
     }
 
-    public Item(String databaseName, String tableName, String fieldName, Class<?> fieldType) {
-      this.databaseName = databaseName;
-      this.tableName = tableName;
-      this.fieldName = fieldName;
-      this.fieldType = fieldType;
+    public String getJsonPath() {
+      return jsonPath;
+    }
+
+    public void setJsonPath(String jsonPath) {
+      this.jsonPath = jsonPath;
     }
   }
 }

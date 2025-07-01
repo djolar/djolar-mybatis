@@ -25,8 +25,8 @@ public class WhereClause extends Clause {
   private Class<?> valueType;
 
   public WhereClause(String databaseName, String tableName, String columnName, Op operator,
-    Object value, Class<?> valueType, boolean needEscape) {
-    super(databaseName, tableName, columnName, needEscape);
+    Object value, Class<?> valueType, boolean needEscape, String jsonPath) {
+    super(databaseName, tableName, columnName, needEscape, jsonPath);
     this.operator = operator;
     this.value = value;
     this.valueType = valueType;

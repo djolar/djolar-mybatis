@@ -558,6 +558,39 @@ public abstract class BaseTest extends SessionAwareManager {
     }
   }
 
+  @Test
+  void testJsonPathShouldSuccess() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      setDjolarParameter(session, DjolarProperty.KEY_THROW_IF_EXPRESSION_INVALID,
+        DjolarProperty.VALUE_OFF);
+      BlogMapper mapper = session.getMapper(BlogMapper.class);
+      QueryRequest queryRequest = new QueryRequest();
+      queryRequest.setQuery("meta__eq__abc");
+      List<Blog> results = mapper.findAll(queryRequest);
+      Assertions.assertEquals(7, results.size());
+
+      queryRequest.setQuery("click__eq__9");
+      results = mapper.findAll(queryRequest);
+      Assertions.assertEquals(1, results.size());
+
+      queryRequest.setQuery("click__gt__1");
+      results = mapper.findAll(queryRequest);
+      Assertions.assertEquals(5, results.size());
+
+      queryRequest.setQuery("click__lt__9");
+      results = mapper.findAll(queryRequest);
+      Assertions.assertEquals(9, results.size());
+
+      queryRequest.setQuery("click__ge__1");
+      results = mapper.findAll(queryRequest);
+      Assertions.assertEquals(13, results.size());
+
+      queryRequest.setQuery("click__le__9");
+      results = mapper.findAll(queryRequest);
+      Assertions.assertEquals(10, results.size());
+    }
+  }
+
   protected void setDjolarParameter(SqlSession session, String key, String value) {
     Properties props = new Properties();
     props.setProperty(key, value);

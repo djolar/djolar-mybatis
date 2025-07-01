@@ -6,7 +6,7 @@
 
   <groupId>com.enixyu</groupId>
   <artifactId>djolar-mybatis</artifactId>
-  <version>1.10.0</version>
+  <version>1.11.0</version>
   <packaging>jar</packaging>
   <name>djolar-mybatis</name>
   <description>Djolar plugin for mybatis</description>
@@ -193,16 +193,6 @@
           </plugin>
         </plugins>
       </build>
-      <distributionManagement>
-        <snapshotRepository>
-          <id>ossrh</id>
-          <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-          <id>ossrh</id>
-          <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-      </distributionManagement>
     </profile>
   </profiles>
 
@@ -230,6 +220,17 @@
         <groupId>pw.krejci</groupId>
         <artifactId>jmh-maven-plugin</artifactId>
         <version>0.2.2</version>
+      </plugin>
+
+      <!-- maven central publish -->
+      <plugin>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
+        <version>0.8.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <publishingServerId>central</publishingServerId>
+        </configuration>
       </plugin>
     </plugins>
   </build>

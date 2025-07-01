@@ -92,7 +92,7 @@ public class DjolarParser {
     if (column == null) {
       queryMapping.set(
         field.getName(),
-        new QueryMapping.Item(databaseName, tableName, field.getName(), field.getType())
+        new QueryMapping.Item(databaseName, tableName, field.getName(), field.getType(), null)
       );
       return;
     }
@@ -102,7 +102,7 @@ public class DjolarParser {
     String fieldName = column.columnName().isEmpty() ? field.getName() : column.columnName();
     queryMapping.set(
       column.queryAlias(),
-      new QueryMapping.Item(databaseName, tableName, fieldName, field.getType())
+      new QueryMapping.Item(databaseName, tableName, fieldName, field.getType(), column.jsonPath())
     );
   }
 
@@ -392,7 +392,7 @@ public class DjolarParser {
     if (groups.length == 2) {
       // clause without value case
       return new WhereClause(field.getDatabaseName(), field.getTableName(), field.getFieldName(),
-        operator, null, field.getFieldType(), true);
+        operator, null, field.getFieldType(), true, field.getJsonPath());
     }
 
     // parse value
@@ -403,7 +403,7 @@ public class DjolarParser {
       Object parsedValue = dialect.parseQueryFieldValue(ms, parameterMappings, parameterObject,
         additionalParameters, index, fieldName, operator, field, value);
       return new WhereClause(field.getDatabaseName(), field.getTableName(), field.getFieldName(),
-        operator, parsedValue, fieldType, true);
+        operator, parsedValue, fieldType, true, field.getJsonPath());
     } catch (Exception e) {
       if (throwIfExpressionInvalid) {
         throw e;
@@ -439,7 +439,7 @@ public class DjolarParser {
           String.format("sort field '%s' not found in query mapping", fieldName));
       }
       return new OrderClause(field.getDatabaseName(), field.getTableName(), field.getFieldName(),
-        !"-".equals(ascDesc), true);
+        !"-".equals(ascDesc), true, field.getJsonPath());
     }).collect(Collectors.toList());
   }
 
@@ -524,6 +524,6 @@ public class DjolarParser {
       int.class).build();
     parameterMappings.add(parameterMapping);
     parameterObject.put(property, value);
-    return new WhereClause(null, null, "1", Op.EQUAL, value, int.class, false);
+    return new WhereClause(null, null, "1", Op.EQUAL, value, int.class, false, null);
   }
 }

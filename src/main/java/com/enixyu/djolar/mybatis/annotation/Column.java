@@ -37,4 +37,6 @@ public @interface Column {
     String tableName() default "";
 
     String columnName() default "";
+
+    String jsonPath() default "";
 }
