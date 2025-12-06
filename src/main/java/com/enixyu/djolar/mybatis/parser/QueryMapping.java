@@ -39,11 +39,11 @@ public class QueryMapping {
 
   public static class Item {
 
-    private String databaseName;
-    private String tableName;
-    private String fieldName;
-    private Class<?> fieldType;
-    private String jsonPath;
+    private final String databaseName;
+    private final String tableName;
+    private final String fieldName;
+    private final Class<?> fieldType;
+    private final String jsonPath;
 
     public Item(String databaseName, String tableName, String fieldName, Class<?> fieldType,
       String jsonPath) {
@@ -58,40 +58,32 @@ public class QueryMapping {
       return databaseName;
     }
 
-    public void setDatabaseName(String databaseName) {
-      this.databaseName = databaseName;
-    }
-
     public String getTableName() {
       return tableName;
-    }
-
-    public void setTableName(String tableName) {
-      this.tableName = tableName;
     }
 
     public String getFieldName() {
       return fieldName;
     }
 
-    public void setFieldName(String fieldName) {
-      this.fieldName = fieldName;
-    }
-
     public Class<?> getFieldType() {
       return fieldType;
-    }
-
-    public void setFieldType(Class<?> fieldType) {
-      this.fieldType = fieldType;
     }
 
     public String getJsonPath() {
       return jsonPath;
     }
 
-    public void setJsonPath(String jsonPath) {
-      this.jsonPath = jsonPath;
+    public String getFullIdentifier(int fieldIndex) {
+      return tableName == null || tableName.isEmpty()
+        ? String.format("%s_%s_%d", tableName, fieldName, fieldIndex)
+        : String.format("%s_%d", fieldName, fieldIndex);
+    }
+
+    public String getFullIdentifier(int fieldIndex, int i) {
+      return tableName == null || tableName.isEmpty()
+        ? String.format("%s_%s_%d_%d", tableName, fieldName, fieldIndex, i)
+        : String.format("%s_%d_%d", fieldName, fieldIndex, i);
     }
   }
 }

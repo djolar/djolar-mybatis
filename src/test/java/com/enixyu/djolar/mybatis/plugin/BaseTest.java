@@ -24,6 +24,7 @@ import com.enixyu.djolar.mybatis.domain.Rate;
 import com.enixyu.djolar.mybatis.domain.UserQueryRequest;
 import com.enixyu.djolar.mybatis.exceptions.DjolarParserException;
 import com.enixyu.djolar.mybatis.mapper.BlogMapper;
+import com.enixyu.djolar.mybatis.mapper.BlogMapperWithoutTableAnnotation;
 import com.enixyu.djolar.mybatis.mapper.RateMapper;
 import com.enixyu.djolar.mybatis.parser.Op;
 import com.enixyu.djolar.mybatis.parser.QueryRequest;
@@ -588,6 +589,29 @@ public abstract class BaseTest extends SessionAwareManager {
       queryRequest.setQuery("click__le__9");
       results = mapper.findAll(queryRequest);
       Assertions.assertEquals(10, results.size());
+    }
+  }
+
+  @Test
+  void testSelectWithoutTableAnnotationShouldSuccess() {
+    try (SqlSession session = this.sessionFactory.openSession()) {
+      setDjolarParameter(session, DjolarProperty.KEY_THROW_IF_EXPRESSION_INVALID,
+        DjolarProperty.VALUE_OFF);
+      BlogMapperWithoutTableAnnotation mapper = session.getMapper(BlogMapperWithoutTableAnnotation.class);
+      QueryRequest request = new QueryRequest();
+      request.setQuery("id__eq__1");
+      List<Blog> results = mapper.findAll(request);
+      Assertions.assertEquals(1, results.size());
+
+      request = new QueryRequest();
+      request.setQuery("id__gt__1|n__sw__abc|id__lt__11");
+      results = mapper.findAll(request);
+      Assertions.assertEquals(8, results.size());
+
+      request = new QueryRequest();
+      request.setQuery("tags__jc__1,2,3");
+      results = mapper.findAll(request);
+      Assertions.assertEquals(2, results.size());
     }
   }
 

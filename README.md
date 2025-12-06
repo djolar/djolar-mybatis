@@ -134,6 +134,10 @@ support operators:
 
 ## Release Note
 
+## v1.12.0
+
+1. allow query mapping without `Table` Annotation
+
 ## v1.11.0
 
 1. Support json path definition in query mapping

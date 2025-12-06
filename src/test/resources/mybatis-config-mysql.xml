@@ -31,5 +31,6 @@
   <mappers>
     <mapper resource="mapper/BlogMapper-mysql.xml"/>
     <mapper resource="mapper/RateMapper-mysql.xml"/>
+    <mapper resource="mapper/BlogMapperWithoutTableAnnotation-mysql.xml"/>
   </mappers>
 </configuration>

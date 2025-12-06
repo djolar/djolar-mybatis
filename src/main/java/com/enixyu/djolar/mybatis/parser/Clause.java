@@ -2,15 +2,15 @@ package com.enixyu.djolar.mybatis.parser;
 
 public abstract class Clause {
 
-  private String databaseName;
+  private final String databaseName;
 
-  private String tableName;
+  private final String tableName;
 
   private String columnName;
 
-  private String jsonPath;
+  private final String jsonPath;
 
-  private boolean needEscape;
+  private final boolean needEscape;
 
   public Clause(String databaseName, String tableName, String columnName, boolean needEscape,
     String jsonPath) {
@@ -29,35 +29,27 @@ public abstract class Clause {
     return tableName;
   }
 
-  public String getColumnName() {
-    return columnName;
+  public boolean isTableNameNotExist() {
+    return tableName == null || tableName.isEmpty();
   }
 
-  public void setTableName(String tableName) {
-    this.tableName = tableName;
+  public String getColumnName() {
+    return columnName;
   }
 
   public void setColumnName(String columnName) {
     this.columnName = columnName;
   }
 
-  public void setNeedEscape(boolean needEscape) {
-    this.needEscape = needEscape;
-  }
-
   public String getDatabaseName() {
     return databaseName;
   }
 
-  public void setDatabaseName(String databaseName) {
-    this.databaseName = databaseName;
+  public boolean isDatabaseNameNotExist() {
+    return databaseName == null || databaseName.isEmpty();
   }
 
   public String getJsonPath() {
     return jsonPath;
-  }
-
-  public void setJsonPath(String jsonPath) {
-    this.jsonPath = jsonPath;
   }
 }

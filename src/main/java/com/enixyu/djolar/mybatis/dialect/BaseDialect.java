@@ -17,7 +17,7 @@ public abstract class BaseDialect implements Dialect {
 
   protected String getColumnName(Clause clause) {
     String quote = clause.isNeedEscape() ? getFieldQuoteSymbol() : "";
-    return clause.getTableName() == null
+    return clause.isTableNameNotExist()
       ? String.format("%s%s%s", quote, clause.getColumnName(), quote)
       : String.format("%s%s%s.%s%s%s", quote, clause.getTableName(), quote, quote,
         clause.getColumnName(), quote);
@@ -83,8 +83,7 @@ public abstract class BaseDialect implements Dialect {
   protected Object parseSingleValueField(MappedStatement ms, List<ParameterMapping> parameterMappings,
     Map<String, Object> parameterObject, int fieldIndex, Op op, Item field, String value) {
     Object parsedValue = parseValue(field, op, value);
-    String property = String.format("%s_%s_%d", field.getTableName(), field.getFieldName(),
-      fieldIndex);
+    String property = field.getFullIdentifier(fieldIndex);
     ParameterMapping parameterMapping = new ParameterMapping.Builder(
       ms.getConfiguration(),
       property,
@@ -105,8 +104,7 @@ public abstract class BaseDialect implements Dialect {
       String token = tokens[i];
       Object itemParsedValue = parseValue(field, op, token);
       parsedValue.add(itemParsedValue);
-      String property = String.format("%s_%s_%d_%d", field.getTableName(), field.getFieldName(),
-        fieldIndex, i);
+      String property = field.getFullIdentifier(fieldIndex, i);
       ParameterMapping parameterMapping = new ParameterMapping.Builder(
         ms.getConfiguration(),
         property,
@@ -114,16 +112,8 @@ public abstract class BaseDialect implements Dialect {
       parameterMappings.add(parameterMapping);
       additionalParameters.put(property, itemParsedValue);
     }
-    String property = String.format("%s_%s_%d", field.getTableName(), field.getFieldName(),
-      fieldIndex);
+    String property = field.getFullIdentifier(fieldIndex);
     parameterObject.put(property, parsedValue);
     return parsedValue;
-  }
-
-  protected boolean isBlank(String value) {
-    if (value == null) {
-      return true;
-    }
-    return value.isEmpty();
   }
 }

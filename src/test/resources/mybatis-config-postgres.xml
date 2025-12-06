@@ -31,5 +31,6 @@
   <mappers>
     <mapper resource="mapper/BlogMapper-postgres.xml"/>
     <mapper resource="mapper/RateMapper-postgres.xml"/>
+    <mapper resource="mapper/BlogMapperWithoutTableAnnotation-postgres.xml"/>
   </mappers>
 </configuration>

@@ -71,11 +71,10 @@ public class MySQLDialect extends BaseDialect {
   @Override
   protected String getColumnName(Clause clause) {
     String quote = clause.isNeedEscape() ? getFieldQuoteSymbol() : "";
-    String columnName = clause.getTableName() == null
+    String columnName = clause.isTableNameNotExist()
       ? String.format("%s%s%s", quote, clause.getColumnName(), quote)
-      : isBlank(clause.getDatabaseName())
-        ? String.format("%s%s%s.%s%s%s", quote, clause.getTableName(), quote, quote,
-        clause.getColumnName(), quote)
+      : clause.isDatabaseNameNotExist()
+        ? String.format("%s%s%s.%s%s%s", quote, clause.getTableName(), quote, quote, clause.getColumnName(), quote)
         : String.format("%s%s%s.%s%s%s.%s%s%s", quote, clause.getDatabaseName(), quote, quote,
           clause.getTableName(), quote, quote, clause.getColumnName(), quote);
 
